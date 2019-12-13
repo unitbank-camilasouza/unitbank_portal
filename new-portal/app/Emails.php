@@ -47,4 +47,13 @@ class Emails extends Model
          'id_user' => ['required', 'integer', 'exists:Users'],
        ]);
      }
+
+     /**
+      * Returns the emails as a string
+      *
+      * @return string
+     */
+    public function __toString() {
+        return $this->email;
+    }
 }

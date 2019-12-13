@@ -1,4 +1,6 @@
 <?php
+// Author: Davi Mendes Pimentel
+// last modified date: 13/12/2019
 
 namespace App\Http\Controllers\Auth;
 
@@ -19,6 +21,8 @@ class ResetPasswordController extends Controller
     */
 
     use ResetsPasswords;
+
+
 
     /**
      * Where to redirect users after resetting their password.

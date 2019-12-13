@@ -39,7 +39,7 @@ class ValidatorHandler {
    *
    * @param string $redirect_url
    * @param array $params
-   * @return null|\Singletons\ValidatorHandler
+   * @return null|\Illuminate\Routing\Redirector|\Illuminate\Http\RedirectResponse
    */
   public function ifValidationFailsRedirect(string $redirect_url, array $params = []) {
     // verify if the last validation exists and if has fail

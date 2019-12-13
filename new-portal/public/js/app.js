@@ -69070,8 +69070,8 @@ if (document.getElementById('example')) {
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(/*! C:\xampp\new-portal\resources\js\app.jsx */"./resources/js/app.jsx");
-module.exports = __webpack_require__(/*! C:\xampp\new-portal\resources\sass\app.scss */"./resources/sass/app.scss");
+__webpack_require__(/*! C:\xampp\unitbank_portal\new-portal\resources\js\app.jsx */"./resources/js/app.jsx");
+module.exports = __webpack_require__(/*! C:\xampp\unitbank_portal\new-portal\resources\sass\app.scss */"./resources/sass/app.scss");
 
 
 /***/ })

@@ -53,6 +53,9 @@ class RegisterController extends Controller
       // creates a new transaction to errors cases
       return DB::transaction( function () {
         $request = request(); // gets this request instance
+        $request->merge([
+            'user_table' => 'Customers',
+        ]);
 
         $result = Users::createByRequest($request);  // save a new user
 
@@ -98,6 +101,9 @@ class RegisterController extends Controller
         // creates a new transaction to errors cases
         return DB::transaction( function () {
             $request = request(); // gets this request instance
+            $request->merge([
+                'user_table' => 'Consultants',
+            ]);
 
             $result = Users::createByRequest($request);  // save a new user
 

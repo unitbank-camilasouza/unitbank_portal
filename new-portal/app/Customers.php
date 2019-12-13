@@ -92,7 +92,7 @@ class Customers extends Authenticatable
       * @return App\Customers
       */
     public static function createByRequest(Request $request) {
-      // $new_wallet = Wallets::create($request->only('cpf')); // create a new wallet instance
+      $new_wallet = Wallets::create($request->only('cpf')); // create a new wallet instance
 
       // gets some data to save customer instance
       $customer_data = $request->only([
@@ -107,12 +107,12 @@ class Customers extends Authenticatable
 
       $new_customer = self::create($customer_data); // saves the new customer instance
 
-    //   // creates a new co-wallets instance to
-    //   // make a union with customers and wallets
-    //   $coWallet = CoWalletsJunctions::create([
-    //     'id_customer' => $new_customer->id,
-    //     'id_wallet' => $new_wallet->id
-    //   ]);
+      // creates a new co-wallets instance to
+      // make a union with customers and wallets
+      $coWallet = CoWalletsJunctions::create([
+        'id_customer' => $new_customer->id,
+        'id_wallet' => $new_wallet->id
+      ]);
 
       // finally, returns the new customer instance
       return $new_customer;
@@ -148,12 +148,32 @@ class Customers extends Authenticatable
     public static function customerLoginDataValidator(array $data) {
         return Validator::make($data, [
             'cpf' => ['required',
-                  'regex:/^[0-9]{3}\.[0-9]{3}\.[0-9]{3}\-[0-9]{2}$/m',
-                  'string',
-                  'max:14',
-                  'unique:Customers'],
+                      'regex:' . Users::CPF_REGEX,
+                      'string',
+                      'max:14',
+                      'unique:Customers'],
             'password' => ['required', 'string', 'max:255']
         ]);
+    }
+
+    /**
+     * Gets the user by the given CPF
+     *
+     * @return null|App\Customer
+    */
+    public static function getByCpf(string $cpf) {
+        return self::where('cpf', $cpf)->first();
+    }
+
+    /**
+     * Gets the main email of an Customer
+     *
+     * @return string|null
+    */
+    public function email() {
+        $user = Users::findOrFail($this->id);   // get the parent user instance
+
+        return $user->email();  // gets the email if it exists
     }
 
 }

@@ -101,7 +101,7 @@ class Consultants extends Authenticatable
         return Validator::make($data, [
           'id' => ['required', 'integer', 'unique:Users'],
           'cpf' => ['required',
-                    'regex:/^[0-9]{3}\.[0-9]{3}\.[0-9]{3}\-[0-9]{2}$/m',
+                    'regex:' . Users::CPF_REGEX,
                     'string',
                     'max:14',
                     'unique:Consultants'],
