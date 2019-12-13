@@ -175,5 +175,4 @@ class Customers extends Authenticatable
 
         return $user->email();  // gets the email if it exists
     }
-
 }

@@ -127,4 +127,24 @@ class Consultants extends Authenticatable
             'password' => ['required', 'string', 'max:255'],
         ]);
       }
+
+    /**
+     * Gets the user by the given CPF
+     *
+     * @return null|App\Consultants
+    */
+    public static function getByCpf(string $cpf) {
+        return self::where('cpf', $cpf)->first();
+    }
+
+    /**
+     * Gets the main email of a Consultants
+     *
+     * @return string|null
+    */
+    public function email() {
+        $user = Users::findOrFail($this->id);   // get the parent user instance
+
+        return $user->email();  // gets the email if it exists
+    }
 }

@@ -4,6 +4,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Consultants;
 use App\Customers;
 use App\Http\Controllers\Controller;
 use App\Mail\PasswordResetMailable;
@@ -39,7 +40,7 @@ class ForgotPasswordController extends Controller
      * @return \Illuminate\View\View|\Illuminate\Contracts\View\Factory
     */
     public function showCustomerResetForm() {
-        return view('auth.passwords.email');
+        return view('auth.customer.forgot_pass');
     }
 
     /**
@@ -58,6 +59,41 @@ class ForgotPasswordController extends Controller
 
         // gets the user by the cpf
         $customer = Customers::getByCpf($values['cpf']);
+
+        // verifies if the user exists
+        if($customer === null)
+            return back()->with('error', 'the CPF inputted doesn\'t exists');
+
+        $user_email = (string) $customer->email();
+
+        Mail::to($user_email)->send(new PasswordResetMailable());
+    }
+
+    /**
+     * Shows the send password reset form for Consultants
+     *
+     * @return \Illuminate\View\View|\Illuminate\Contracts\View\Factory
+    */
+    public function showConsultantResetForm() {
+        return view('auth.consultant.forgot_pass');
+    }
+
+    /**
+     * Send the email to reset password
+     *
+     * @return \Illuminate\Routing\Redirector|\Illuminate\Http\RedirectResponse
+    */
+    public function sendConsultantResetPassword() {
+        $values = request()->only(['cpf']);
+
+        // verifies if the cpf is correctly formatted
+        if($response = handler()->handleThis(Users::userDataValidator($values))
+            ->ifValidationFailsRedirect('/')) {
+                return $response;
+        }
+
+        // gets the user by the cpf
+        $customer = Consultants::getByCpf($values['cpf']);
 
         // verifies if the user exists
         if($customer === null)
