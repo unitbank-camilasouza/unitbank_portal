@@ -16,13 +16,19 @@ class ConsultantRegisterComponent extends Component {
     render() {
         return (
             <form action={this.props.action_route}>
-                <div>
+                <div className="form-control">
                     My Register Consultant
                     <br/>
 
-                    <input type="text" name="first_name" id="first_name" placeholder={this.props.placeholder_first_name}/>
-                    <input type="text" name="last_name" id="last_name"/>
-                    <input type="text" name="cpf" id="cpf"/>
+                    <input type="text" name="first_name" id="first_name"
+                           placeholder={this.props.placeholder_first_name}/>
+                    <input type="text" name="last_name" id="last_name"
+                           placeholder={this.props.placeholder_last_name}/>
+
+                    <input type="text" name="cpf" id="cpf"
+                           placeholder={this.props.placeholder_cpf}/>
+
+                    <input type="submit" value={this.props.submit_value}/>
                 </div>
             </form>
         )

@@ -23,6 +23,10 @@ class LoginController extends Controller
 
     use AuthenticatesUsers;
 
+    public function __construct() {
+        $this->middleware('guest');
+    }
+
     /**
      * Where to redirect users after login.
      *
@@ -45,7 +49,7 @@ class LoginController extends Controller
      * @return \Illuminate\View\View|\Illuminate\Contracts\View\Factory
     */
     public function showAdminLoginForm() {
-        return view('admin.login');
+        return view('auth.admin.login');
     }
 
     /**
@@ -74,10 +78,11 @@ class LoginController extends Controller
     public function loginAdmin() {
         $values = request()->only(['login', 'password']);
 
-        if(auth('auth:admin')->attempt($values))
-            return redirect('/home');
+        if(auth('admin')->attempt($values)) {
+            return redirect()->route('home');
+        }
 
-        return back()->withInput($values);
+        return back()->withInput($values)->with('error', 'invalid credentials');
     }
 
     /**
@@ -88,15 +93,19 @@ class LoginController extends Controller
     public function loginConsultant() {
         $values = request()->only(['cpf', 'password']);
 
+        // generates the validator
         $validator_result = Consultants::customerLoginDataValidator($values);
 
+        // verifies if an invalid input has getted
         if($response = handler()->handleThis($validator_result)->ifValidationFailsRedirect('/'))
             return $response;
 
-        if(auth('auth:consultant')->attempt($values))
+        // tries to login with a consultant account
+        if(auth('consultant')->attempt($values))
             return redirect('/home');
 
-        $back_response = back()->with('error', 'cpf/password incorrect');
+        // if the user cannot login, return back with 'invalid credentials' message
+        $back_response = back()->with('error', 'invalid credentials');
         return $back_response->withInput();
     }
 
@@ -108,15 +117,19 @@ class LoginController extends Controller
     public function loginCustomer() {
         $values = request()->only(['cpf', 'password']);
 
+        // generates the validator
         $validator_result = Customers::customerLoginDataValidator($values);
 
+        // verifies if an invalid input has getted
         if($response = handler()->handleThis($validator_result)->ifValidationFailsRedirect('/'))
             return $response;
 
-        if(auth('auth:customer')->attempt($values))
+        // tries to login with a consultant account
+        if(auth('customer')->attempt($values))
             return redirect('/home');
 
-        $back_response = back()->with('error', 'cpf/password incorrect');
+        // if the user cannot login, return back with 'invalid credentials' message
+        $back_response = back()->with('error', 'invalid credentials');
         return $back_response->withInput();
     }
 }

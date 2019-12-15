@@ -2,7 +2,6 @@
 // Author: Davi Mendes Pimentel
 // last modified date: 12/12/2019
 
-use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -25,6 +24,14 @@ Route::get('/', function () {
 })->name('index');
 
 Route::get('/home', 'HomeController@index')->name('home');
+
+Route::post('logout', function () {
+    $current_guard = app()->currentGuard();
+
+    auth($current_guard)->logout();
+
+    return redirect('/');
+})->name('logout');
 
 Route::prefix('login')->middleware(['guest'])->group(function () {
 

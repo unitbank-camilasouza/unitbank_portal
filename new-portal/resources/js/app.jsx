@@ -15,5 +15,8 @@ require('./bootstrap');
  */
 
 require('./components/Example');
-require('./components/ConsultantRegisterComponent');
-require('./components/CustomerRegisterComponent');
+require('./components/consultant_components/ConsultantRegisterComponent');
+require('./components/consultant_components/ConsultantLoginFormComponent');
+require('./components/customer_components/CustomerRegisterComponent');
+require('./components/customer_components/CustomerLoginFormComponent');
+require('./components/admin_components/AdminLoginFormComponent');
