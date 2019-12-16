@@ -20,31 +20,40 @@ class CellPhones extends Model
 
     const DELETED_AT = 'disabled_at';
 
+    const CELLPHONE_REGEX = '/^\([0-9]{2}\) [0-9]{5}\-[0-9]{4}$/m';
+
     /**
-     * Creates and saves a new cellphone instance in database
+     * Validation rules
      *
-     * @var \Illuminate\Http\Request $request
-     * @return App\CellPhones
-     */
-    public static function createByRequest(Request $request) {
-      if(! session()->has('user_id'))
-        throw new Exception('Illegal arguments, \'user_id\' field is missing in the session.');
-
-      $phone_data = $request->only(['phone_number']); // gets the phone number
-      $phone_data['id_user'] = session()->get('user_id'); // gets the user id
-
-      self::cellphoneDataValidator($phone_data);  // verify if the data is correct
-
-      return CellPhones::create($phone_data);  // creates and saves the phone number
-    }
-
-    public static function cellphoneDataValidator(array $data) {
-      return Validator::make($data, [
+     * @const array VALIDATION_RULES
+    */
+    const VALIDATION_RULES = [
         'id_user' => ['required', 'integer', 'exists:Users'],
         'phone_number' => ['bail',
                       'required',
                       'string',
-                      'regex:^\([0-9]{2}\) [0-9]{5}\-[0-9]{4}$/m'],
+                      'regex:' . self::CELLPHONE_REGEX],
+    ];
+
+    /**
+     * Creates and saves a new cellphone instance in database
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return App\CellPhones
+     */
+    public static function createByRequest(Request $request) {
+      $phone_data = $request->only([
+          'phone_number', 'id_user'
       ]);
+
+      $validation_result = self::validator($phone_data);  // verify if the data is correct
+      if($validation_result->fails())
+        return $validation_result;
+
+      return CellPhones::create($phone_data);  // creates and saves the phone number
+    }
+
+    public static function validator(array $data) {
+      return Validator::make($data, self::VALIDATION_RULES);
     }
 }

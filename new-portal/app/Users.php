@@ -45,10 +45,10 @@ class Users extends Model
       );
       $user_data['cpf'] = request()->get('cpf');
 
-      $validator = self::userDataValidator($user_data);
+      $validation_result = self::validator($user_data);
 
-      if($validator->fails())
-        return $validator;
+      if($validation_result->fails())
+        return $validation_result;
 
       return Users::create($user_data);
     }
@@ -59,7 +59,7 @@ class Users extends Model
      * @param array $data
      * @return Illuminate\Support\Facades\Validator
      */
-    public static function userDataValidator(array $data) {
+    public static function validator(array $data) {
       return Validator::make($data, self::USER_VALIDATOR_RULES);
     }
 
@@ -71,9 +71,7 @@ class Users extends Model
      * @return bool
      */
     public function saveUsersRelationalsTablesData(Request $request) {
-      // verify if the 'user_id' is already on the session
-      if(! session()->has('user_id'))
-        session()->put('user_id', $this->id); // if not, put it in the session
+      $request->merge(['id_user' => $this->id]);
 
       // creates the relationals data tables
       $result = handler()->handleThis(Addresses::createByRequest($request));
@@ -93,8 +91,6 @@ class Users extends Model
       // verifies if the inputs is valids
       if ($response = $result->ifValidationFailsRedirect('/register'))
         return $response->withErrors($result);
-
-      session()->forget('user_id'); // flush the 'user_id'
 
       return true;
     }

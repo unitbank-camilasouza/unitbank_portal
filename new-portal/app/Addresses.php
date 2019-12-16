@@ -14,7 +14,11 @@ class Addresses extends Model
 
     public $timestamps = false;
 
-    /***/
+    /**
+     * The fillable fields of the model
+     *
+     * @var array $fillable
+    */
     public $fillable = [
       'id_user',
       'street',
@@ -26,11 +30,18 @@ class Addresses extends Model
       'country'
     ];
 
-    // define quais timestamps serão usados
-    // para esse modelo
+    /**
+     * The timestamps accepted by de model
+     *
+     * @var array $dates
+    */
     public $dates = ['updated_at', 'deleted_at'];
 
-    // define o nome de "deletado em"
+    /**
+     * The 'deleted_at' name on the database
+     *
+     * @const string DELETED_AT
+    */
     const DELETED_AT = 'disabled_at';
 
     /**
@@ -42,6 +53,7 @@ class Addresses extends Model
     public static function createByRequest(Request $request) {
      // gets all data relationated with address
      $address_data = $request->only([
+       'id_user',
        'street',
        'number',
        'complement',
@@ -50,9 +62,11 @@ class Addresses extends Model
        'state',
        'country'
      ]);
-     $address_data['id_user'] = session()->get('user_id');  // gets and forget the user id
 
-     self::addressDataValidator($address_data); // verify if the data is valid
+     $validation_result = self::validator($address_data); // verify if the data is valid
+
+     if ($validation_result->fails())
+        return $validation_result;
 
      return Addresses::create($address_data); // creates and saves the address
     }
@@ -63,7 +77,7 @@ class Addresses extends Model
       * @param array $data
       * @return \Illuminate\Support\Facades\Validator
       */
-    public static function addressDataValidator(array $data) {
+    public static function validator(array $data) {
       return Validator::make($data, [
         'id_user' => ['required', 'integer', 'exists:Users'],
         'street' => ['required', 'string', 'max:150', 'min:3'],

@@ -93,12 +93,12 @@
         </nav>
 
         <main class="py-4">
-            @if (Session::has('error'))
+            @if (Session::has('error_message'))
                 <p class="text-danger" style="text-align: center;"> {{ Session::pull('error') }} </p>
             @endif
 
-            @if (Session::has('message'))
-                <p> {{ Session::pull('message') }} </p>
+            @if (Session::has('success_message'))
+                <p class="text-success" style="text-align: center;"> {{ Session::pull('message') }} </p>
             @endif
             @yield('content')
         </main>

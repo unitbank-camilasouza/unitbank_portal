@@ -27,10 +27,13 @@ class Emails extends Model
      * @return App\Emails
      * */
      public static function createByRequest(Request $request) {
-       $email_data = $request->only(['email']);  // gets the email
-       $email_data['id_user'] = session()->get('user_id'); // gets de user id
+       $email_data = $request->only([
+           'email', 'id_user'
+        ]);
 
-       self::emailDataValidator($email_data); // verify if the data are correct
+       $validation_result = self::emailDataValidator($email_data); // verify if the data are correct
+       if($validation_result->fails())
+            return $validation_result;
 
        return Emails::create($email_data);  // creates and saves the email
      }

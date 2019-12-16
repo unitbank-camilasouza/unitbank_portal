@@ -65,8 +65,6 @@ class RegisterController extends Controller
 
         $new_user = $result;
 
-        session()->put('user_id', $new_user->id); // puts the user id in the session
-
         $result = Customers::createByRequest($request);  // save a new customer
 
         // verify if any invalid input has ocurred
@@ -113,13 +111,7 @@ class RegisterController extends Controller
 
             $new_user = $result;
 
-            session()->put('user_id', $new_user->id); // puts the user id in the session
-
             $result = Consultants::createByRequest($request);  // save a new customer
-
-            // verify if any invalid input has ocurred
-            if($response = handler()->handleThis($result)->ifValidationFailsRedirect(self::CONSULTANT_REGISTER_URL))
-                return $response->withErrors($result);
 
             // verify if any invalid input has ocurred
             if($response = handler()->handleThis($result)->ifValidationFailsRedirect(self::CONSULTANT_REGISTER_URL))

@@ -35,7 +35,7 @@ class ValidatorHandler {
 
   /**
    * Verify if the last validation has invalid inputs, if yes, redirects with given params
-   * if not, returns this ValidatorHandler object
+   * if not, returns null
    *
    * @param string $redirect_url
    * @param array $params

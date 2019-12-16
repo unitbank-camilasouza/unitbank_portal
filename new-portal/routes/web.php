@@ -23,8 +23,6 @@ Route::get('/', function () {
     return view('welcome');
 })->name('index');
 
-Route::get('/home', 'HomeController@index')->name('home');
-
 Route::post('logout', function () {
     $current_guard = app()->currentGuard();
 
@@ -122,4 +120,8 @@ Route::prefix('register')->middleware(['auth'])->group(function () {
                     'Auth\RegisterController@registerConsultant')
                 ->name('register_consultant');
     });
+});
+
+Route::prefix('home')->group(function () {
+    Route::get('/', 'HomeController@index')->name('home');
 });
