@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
+Route::any('/', function () {
     return view('welcome');
 })->name('index');
 
@@ -35,7 +35,7 @@ Route::prefix('login')->middleware(['guest'])->group(function () {
 
     // routes to admin login
     Route::middleware(['ip_access.admin'])->group( function () {
-        Route::get(LoginController::ADMIN_LOGIN_URL_WITHOUT_PREFIX,
+        Route::any(LoginController::ADMIN_LOGIN_URL_WITHOUT_PREFIX,
                'Auth\LoginController@showAdminLoginForm')
                ->name('admin_login_form');
 
@@ -45,7 +45,7 @@ Route::prefix('login')->middleware(['guest'])->group(function () {
     });
 
     // routes to customer login
-    Route::get(LoginController::CUSTOMER_LOGIN_URL_WITHOUT_PREFIX,
+    Route::any(LoginController::CUSTOMER_LOGIN_URL_WITHOUT_PREFIX,
                'Auth\LoginController@showCustomerLoginForm')
                ->name('customer_login_form');
 
@@ -54,7 +54,7 @@ Route::prefix('login')->middleware(['guest'])->group(function () {
                ->name('customer_login');
 
     // routes to consultant login
-    Route::get(LoginController::CONSULTANT_LOGIN_URL_WITHOUT_PREFIX,
+    Route::any(LoginController::CONSULTANT_LOGIN_URL_WITHOUT_PREFIX,
                'Auth\LoginController@showConsultantLoginForm')
                ->name('consultant_login_form');
 
@@ -67,7 +67,7 @@ Route::prefix('reset')->middleware(['guest'])->group(function () {
 
     // routes to forgot admin passwords
     Route::middleware(['ip_access.admin'])->group(function () {
-        Route::get(ForgotPasswordController::ADMIN_FORGOT_PASS_URL_WITHOUT_PREFIX,
+        Route::any(ForgotPasswordController::ADMIN_FORGOT_PASS_URL_WITHOUT_PREFIX,
                    'Auth\ForgotPasswordController@showAdminResetForm')
                    ->name('admin_forgot_password_form');
 
@@ -77,7 +77,7 @@ Route::prefix('reset')->middleware(['guest'])->group(function () {
     });
 
     // routes to forgot customer passwords
-    Route::get(ForgotPasswordController::CUSTOMER_FORGOT_PASS_URL_WITHOUT_PREFIX,
+    Route::any(ForgotPasswordController::CUSTOMER_FORGOT_PASS_URL_WITHOUT_PREFIX,
                'Auth\ForgotPasswordController@showCustomerResetForm')
                ->name('customer_forgot_password_form');
 
@@ -86,7 +86,7 @@ Route::prefix('reset')->middleware(['guest'])->group(function () {
                ->name('customer_send_password_reset');
 
     // routes to forgot consultant passwords
-    Route::get(ForgotPasswordController::CONSULTANT_FORGOT_PASS_URL_WITHOUT_PREFIX,
+    Route::any(ForgotPasswordController::CONSULTANT_FORGOT_PASS_URL_WITHOUT_PREFIX,
                'Auth\ForgotPasswordController@showConsultantResetForm')
                ->name('consultant_forgot_password_form');
 
@@ -100,7 +100,7 @@ Route::prefix('register')->middleware(['auth'])->group(function () {
     // routes to register a customer
     Route::middleware(['auth:consultant'])->group( function () {
         // route to show form to create a new customer
-        Route::get(RegisterController::CUSTOMER_REGISTER_URL_WITHOUT_PREFIX,
+        Route::any(RegisterController::CUSTOMER_REGISTER_URL_WITHOUT_PREFIX,
                    'Auth\RegisterController@showCustomerRegisterForm')
                ->name('form_customer_register');
 
@@ -112,7 +112,7 @@ Route::prefix('register')->middleware(['auth'])->group(function () {
 
     // routes to register a consultant
     Route::middleware(['auth:admin'])->group(function () {
-        Route::get(RegisterController::CONSULTANT_REGISTER_URL_WITHOUT_PREFIX,
+        Route::any(RegisterController::CONSULTANT_REGISTER_URL_WITHOUT_PREFIX,
                 'Auth\RegisterController@showConsultantRegisterForm')
             ->name('form_consultant_register');
 
@@ -122,6 +122,92 @@ Route::prefix('register')->middleware(['auth'])->group(function () {
     });
 });
 
-Route::prefix('home')->group(function () {
-    Route::get('/', 'HomeController@index')->name('home');
+Route::prefix('home')->middleware(['auth'])->group(function () {
+    Route::any('/', 'HomeController@index')->name('home');
+
+
+
+
+
+    /** Customers management routes */
+    Route::prefix('users', function () {
+        // shows all customers
+        Route::any('/', 'CustomerController@showCustomers');
+
+        // show a profile of a specifc customer
+        Route::any('{customer}', 'CustomerController@showProfile');
+    });
+
+
+
+
+
+
+    /** Contracts management routes */
+    Route::prefix('contracts')->group(function () {
+        // shows all contracts
+        Route::any('/', 'ContractController@showsContracts');
+
+        Route::prefix('{contract}')->middleware(['can:request-contract-details,contract'])
+             ->group(function () {
+            // route to view a specif contract
+            Route::any('/', 'ContractController@showsContractDetails');
+
+            // route to show the withdraw form
+            Route::get('make-a-withdraw', 'WithdrawController@showWithdrawForm');
+
+            // route to save a withdraw
+            Route::post('make-a-withdraw', 'WithdrawController@makeAWithdraw');
+
+            // route to approves a yield
+            Route::post('yield-approvation', 'YieldController@makeAYield');
+        });
+
+        // route to show the save contract form
+        Route::get('save-new-contract', 'ContractController@showSaveContractForm')
+               ->middleware(['auth:consultant']);
+
+        // route to save a new contract
+        Route::post('save-new-contract', 'ContractController@saveContract')
+               ->middleware(['auth:consultant']);
+    });
+
+
+
+
+
+
+    /** Withdrawals management routes */
+    Route::prefix('withdrawals')->group(function () {
+        // shows all withdrawals
+        Route::any('/', 'WithdrawController@showsWithdraws');
+
+        // route to view a specif withdraw
+        Route::any('{withdraw}', 'WithdrawController@showsWithdrawDetails')
+               ->middleware(['can:request-withdraw-details,withdraw']);
+
+        // route to show the withdraw form
+        Route::get('make-a-withdraw', 'WithdrawController@showWithdrawForm');
+
+        // route to save a withdraw
+        Route::post('make-a-withdraw', 'WithdrawController@makeAWithdraw');
+    });
+
+
+
+
+
+
+    /** Yields management routes */
+    Route::prefix('yields')->group(function () {
+        // shows all yields
+        Route::any('/', 'YieldController@showsYields');
+
+        // route to view a specif yield
+        Route::any('{yield}', 'YieldController@showsYieldDetails')
+               ->middleware(['can:request-yield-details,yield']);
+
+        // route to approves a yield
+        Route::post('yield-approvation', 'YieldController@makeAYield');
+    });
 });

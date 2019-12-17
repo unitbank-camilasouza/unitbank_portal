@@ -10,6 +10,7 @@ use App\Customers;
 use App\Wallets;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class ContractController extends Controller
 {
@@ -72,6 +73,7 @@ class ContractController extends Controller
      * @param App\Contracts $contract
     */
     public function showsContractDetails(Contracts $contract) {
+
         // TODO: makes a inner join with customer
         return view('contract.show_details', ['contract' => $contract]);
     }
@@ -83,20 +85,14 @@ class ContractController extends Controller
      * @param null|App\Customers $customer
      * @return \Illuminate\View\View|\Illuminate\Contracts\View\Factory
     */
-    public function showsContracts(Request $request, ?Customers $customer = null) {
+    public function showsContracts(Request $request) {
         $this->middleware('auth');
 
         $contracts = [];
         if ($request->ajax()) {
-            $contracts = [];
             if(auth('customer')->check()) {
-                $co_wallet_junction = CoWalletsJunctions::where(
-                    'id_customer', auth('customer')->id()
-                )->first();
-
-                $wallet = Wallets::findOrFail($co_wallet_junction->id_wallet);
-                $contracts = Contracts::where('id_wallet', $wallet->id)
-                                        ->crossJoin('CurrentContracts')->paginate(20);
+                $customer = Customers::findOrFail(auth('customer')->id());
+                $contracts = $customer->contracts();
             } else {
                 $contracts = CurrentContracts::join('Contracts', 'Contracts.id', 'CurrentContracts.id')
                                                ->limit(200)->paginate(20);
@@ -104,32 +100,28 @@ class ContractController extends Controller
 
             return response()->json($contracts);
         } else if (auth('consultant')->check() || auth('admin')->check()) {
-            if($customer !== null) {
-                $co_wallet_junction = CoWalletsJunctions::where(
-                    'id_customer', $customer->id
-                )->first();
-
-                $wallet = Wallets::findOrFail($co_wallet_junction->id_wallet);
-                $contracts = Contracts::where('id_wallet', $wallet->id)
-                                        ->join('CurrentContracts',
-                                               'CurrentContracts.id',
-                                               'Contracts.id')->paginate(20);
-            }
-            else
-                $contracts = CurrentContracts::join('Contracts', 'Contracts.id', 'CurrentContracts.id')
-                                               ->limit(200)->paginate(20);
+            $contracts = DB::table('Contracts')
+                             ->join('CoWalletsJunctions',
+                                    'CoWalletsJunctions.id_wallet', '=', 'Contracts.id_wallet')
+                             ->join('Customers',
+                                    'Customers.id', '=', 'CoWalletsJunctions.id_customer')
+                             ->get();
         } else if (auth('customer')->check()) {
-            $co_wallet_junction = CoWalletsJunctions::where(
-                'id_customer', auth('customer')->id()
-            )->first();
-
-            $wallet = Wallets::findOrFail($co_wallet_junction->id_wallet);
-            $contracts = Contracts::where('id_wallet', $wallet->id)
-                                    ->crossJoin('CurrentContracts')->paginate(20);
+            $customer = Customers::findOrFail(auth('customer')->id());
+            $contracts = $customer->contracts();
         } else {
             throw new Exception('Incorrect values to get contract.');
         }
 
         return view('contract.show_all', ['contracts' => $contracts]);
+    }
+
+    /**
+     * Shows the save contract form
+     *
+     * @return \Illuminate\View\View|\Illuminate\Contracts\View\Factory
+     */
+    public function showSaveContractForm () {
+        return view('contract.save_form');
     }
 }

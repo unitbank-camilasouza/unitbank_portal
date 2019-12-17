@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use \Illuminate\Http\Request;
 use App\Users;
+use Illuminate\Support\Facades\DB;
 
 class Customers extends Authenticatable
 {
@@ -174,5 +175,32 @@ class Customers extends Authenticatable
         $user = Users::findOrFail($this->id);   // get the parent user instance
 
         return $user->email();  // gets the email if it exists
+    }
+
+    /**
+     * Gets all customer's CoWallets
+     *
+     * @return App\CoWalletsJunctions
+     */
+    public function coWalletsJunctions() {
+        return $this->belongsToMany('\App\CoWalletsJunctions');
+    }
+
+    /**
+     * Gets all customer's Contracts
+     *
+     * @return App\Contracts
+     */
+    public function contracts() {
+        $contracts = DB::table('Contracts')
+                         ->join('CoWalletsJunctions', function ($join) {
+                             $join->on('CoWalletsJunctions.id_wallet', '=', 'Contracts.id_wallet')
+                                  ->on('CoWalletsJunctions.id_customer', '=', $this->id);
+                         })
+                         ->join('Customers',
+                                'CoWalletsJunctions.id_customer', '=', $this->id)
+                         ->get();
+
+        return $contracts;
     }
 }

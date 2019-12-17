@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Contracts;
 use Illuminate\Http\Request;
 use App\CoWalletsJunctions;
+use App\Customers;
 use App\Wallets;
 
 class HomeController extends Controller
@@ -24,21 +25,14 @@ class HomeController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    public function index()
-    {
+    public function index() {
         $contracts = [];
 
         if(auth('consultant')->check() || auth('admin')->check()) {
             $contracts = Contracts::join('CurrentContracts', 'CurrentContracts.id', 'Contracts.id')
                             ->get();
         } else if (auth('customer')->check()) {
-            $co_wallet_junction = CoWalletsJunctions::where(
-                'id_customer', auth('customer')->id()
-            )->first();
-
-            $wallet = Wallets::findOrFail($co_wallet_junction->id_wallet);
-            $contracts = Contracts::where('id_wallet', $wallet->id)
-                                    ->crossJoin('CurrentContracts')->paginate(20);
+            $contracts = Customers::findOrFail(auth('customer')->id())->contracts();
         }
 
         return view('home', ['contracts' => $contracts]);

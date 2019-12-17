@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Contracts;
 use App\Withdrawals;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,15 @@ class WithdrawController extends Controller
     */
     public function __construct() {
         $this->middleware('auth');
+    }
+
+    /**
+     * Shows all withdrawals
+     *
+     * @return \Illuminate\View\View|\Illuminate\Contracts\View\Factory
+     */
+    public function showsWithdraws() {
+        return view('withdraw.show_all');
     }
 
     /**
@@ -66,5 +76,23 @@ class WithdrawController extends Controller
     public function showsWithdrawDetails(Withdrawals $withdraw) {
         // TODO: makes a inner join with customer
         return view('withdraw.show_details', ['withdraw' => $withdraw]);
+    }
+
+    /**
+     * Shows the form to make a withdraw
+     *
+     * @return \Illuminate\View\View|\Illuminate\Contracts\View\Factory
+     */
+    public function showWithdrawForm(?Contracts $contract = null) {
+        return view('withdraw.make_withdraw', ['contract' => $contract]);
+    }
+
+    /**
+     * Makes a withdraw of a Contract and save it on the database
+     *
+     * @return App\Withdrawals
+     */
+    public function makeAWithdraw(Contracts $contract) {
+        // TODO: make the withdraw
     }
 }
