@@ -97,8 +97,8 @@ class LoginController extends Controller
         $validator_result = Consultants::consultantLoginDataValidator($values);
 
         // verifies if an invalid input has getted
-        if($response = handler()->handleThis($validator_result)->ifValidationFailsRedirect('/'))
-            return $response;
+        if($response = handler()->handleThis($validator_result)->ifValidationFailsRedirect(self::CONSULTANT_LOGIN_URL))
+            return $response->withErrors($validator_result);
 
         // tries to login with a consultant account
         if(auth('consultant')->attempt($values))
@@ -121,15 +121,15 @@ class LoginController extends Controller
         $validator_result = Customers::customerLoginDataValidator($values);
 
         // verifies if an invalid input has getted
-        if($response = handler()->handleThis($validator_result)->ifValidationFailsRedirect('/'))
-            return $response;
+        if($response = handler()->handleThis($validator_result)->ifValidationFailsRedirect(self::CUSTOMER_LOGIN_URL))
+            return $response->withErrors($validator_result);
 
         // tries to login with a consultant account
         if(auth('customer')->attempt($values))
             return redirect('/home');
 
         // if the user cannot login, return back with 'invalid credentials' message
-        $back_response = back()->with('error', 'invalid credentials');
+        $back_response = back()->with('error_message', 'invalid credentials');
         return $back_response->withInput();
     }
 }

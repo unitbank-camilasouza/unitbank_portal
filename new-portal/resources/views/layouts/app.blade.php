@@ -94,7 +94,7 @@
 
         <main class="py-4">
             @if (Session::has('error_message'))
-                <p class="text-danger" style="text-align: center;"> {{ Session::pull('error') }} </p>
+                <p class="text-danger" style="text-align: center;"> {{ Session::pull('error_message') }} </p>
             @endif
 
             @if (Session::has('success_message'))

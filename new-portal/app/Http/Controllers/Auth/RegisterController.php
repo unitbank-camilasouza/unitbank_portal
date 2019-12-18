@@ -47,12 +47,11 @@ class RegisterController extends Controller
      *
      * @return mixed
     */
-    public function registerCustomer() {
+    public function registerCustomer(Request $request) {
       $this->middleware('auth:consultant'); // verify if the current user is a consultant
 
       // creates a new transaction to errors cases
-      return DB::transaction( function () {
-        $request = request(); // gets this request instance
+      return DB::transaction( function () use ($request) {
         $request->merge([
             'user_table' => 'Customers',
         ]);
@@ -72,10 +71,16 @@ class RegisterController extends Controller
             return $response->withErrors($result);
 
         // verify which person type is the user
-        if($request->get('person_type', 'physical_person') == 'physical_person')
+        if($request->input('person_type', 'physical_person') == 'physical_person')
           $result = PhysicalPersons::createByRequest($request);  // if is a physical person
-        else if($request->get('person_type') == 'legal_person')
+
+          if($response = handler()->handleThis($result)->ifValidationFailsRedirect(self::CUSTOMER_REGISTER_URL))
+            return $response->withErrors($response);
+        else if($request->input('person_type') == 'legal_person')
           $result = LegalPersons::createByRequest($request); // if is a legal person
+
+          if($response = handler()->handleThis($result)->ifValidationFailsRedirect(self::CUSTOMER_REGISTER_URL))
+            return $response->withErrors($response);
         else
           return redirect()->route('register'); // if is undefined, may be a hacker
 

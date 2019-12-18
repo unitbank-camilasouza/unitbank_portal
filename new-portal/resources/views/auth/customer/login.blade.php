@@ -1,6 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
+    @if ($errors->any())
+
+        @foreach ($errors->all() as $error_message)
+            <p> {{ $error_message }} </p>
+        @endforeach
+    @endif
     <div id="customer-login-form"
          data-action_route="{{ route('customer_login') }}"
          data-csrf="{{ csrf_token() }}"

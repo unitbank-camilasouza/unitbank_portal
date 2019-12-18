@@ -40,10 +40,7 @@ class Users extends Model
       * @return App\Users|Illuminate\Support\Facades\Validator
       */
     public static function createByRequest(Request $request) {
-      $user_data['password'] = Hash::make(
-        $request->get('password')
-      );
-      $user_data['cpf'] = request()->get('cpf');
+      $user_data['cpf'] = request()->input('cpf');
 
       $validation_result = self::validator($user_data);
 

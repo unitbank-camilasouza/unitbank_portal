@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Http\Controllers\Auth\RegisterController;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -93,30 +94,48 @@ class Customers extends Authenticatable
       * @return App\Customers
       */
     public static function createByRequest(Request $request) {
-      $new_wallet = Wallets::create($request->only('cpf')); // create a new wallet instance
-
       // gets some data to save customer instance
       $customer_data = $request->only([
         'cpf', 'first_name', 'last_name'
       ]);
 
-      $customer_data['id'] = session()->get('user_id');
+      $customer_data['id'] = $request->input('user_id');
+      $customer_data['password'] = Hash::make(
+        $request->input('password')
+      );
+      $customer_data['financial_profile'] = $request->input('financial_profile');
 
       // verify the data passed by request
-      self::customerDataValidator($request->all());
-      $customer_data['password'] = Users::findOrFail($customer_data['id'])->password;
+      $result = self::customerDataValidator($customer_data);
+      if($response = handler()->handleThis($result)->ifValidationFailsRedirect($request->url()))
+        return $response->withErrors($result);
 
       $new_customer = self::create($customer_data); // saves the new customer instance
 
-      // creates a new co-wallets instance to
-      // make a union with customers and wallets
-      $coWallet = CoWalletsJunctions::create([
-        'id_customer' => $new_customer->id,
-        'id_wallet' => $new_wallet->id
-      ]);
+      // creates a new instance of wallet
+      $new_customer->createWallet();
 
       // finally, returns the new customer instance
       return $new_customer;
+    }
+
+    /**
+     * Saves a new relationship instance with wallets by request
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return boolean
+     */
+    public function createWallet(Request $request) {
+        $new_wallet = Wallets::create(); // create a new wallet instance
+
+        // creates a new co-wallets instance to
+        // make a union with customers and wallets
+        CoWalletsJunctions::create([
+            'id_customer' => $this->id,
+            'id_wallet' => $new_wallet->id
+        ]);
+
+        return true;
     }
 
     /**
