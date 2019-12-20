@@ -94,29 +94,29 @@ class Customers extends Authenticatable
       * @return App\Customers
       */
     public static function createByRequest(Request $request) {
-      // gets some data to save customer instance
-      $customer_data = $request->only([
-        'cpf', 'first_name', 'last_name'
-      ]);
+        // gets some data to save customer instance
+        $customer_data = $request->only([
+            'cpf', 'first_name', 'last_name'
+        ]);
 
-      $customer_data['id'] = $request->input('user_id');
-      $customer_data['password'] = Hash::make(
-        $request->input('password')
-      );
-      $customer_data['financial_profile'] = $request->input('financial_profile');
+        $customer_data['id'] = $request->input('user_id');
+        $customer_data['password'] = Hash::make(
+            $request->input('password')
+        );
+        $customer_data['financial_profile'] = $request->input('financial_profile');
 
-      // verify the data passed by request
-      $result = self::customerDataValidator($customer_data);
-      if($response = handler()->handleThis($result)->ifValidationFailsRedirect($request->url()))
-        return $response->withErrors($result);
+        // verify the data passed by request
+        $result = self::customerDataValidator($customer_data);
+        if($response = handler()->handleThis($result)->ifValidationFailsRedirect($request->url()))
+            return $response->withErrors($result);
 
-      $new_customer = self::create($customer_data); // saves the new customer instance
+        $new_customer = self::create($customer_data); // saves the new customer instance
 
-      // creates a new instance of wallet
-      $new_customer->createWallet();
+        // creates a new instance of wallet
+        $new_customer->createWallet();
 
-      // finally, returns the new customer instance
-      return $new_customer;
+        // finally, returns the new customer instance
+        return $new_customer;
     }
 
     /**
@@ -145,18 +145,18 @@ class Customers extends Authenticatable
      * @return Illuminate\Support\Facades\Validator
      */
     public static function customerDataValidator(array $data) {
-      return Validator::make($data, [
-        'id' => ['required', 'integer', 'unique:Users'],
-        'cpf' => ['required',
-                  'regex:/^[0-9]{3}\.[0-9]{3}\.[0-9]{3}\-[0-9]{2}$/m',
-                  'string',
-                  'max:14',
-                  'unique:Customers'],
-        'password' => ['required', 'string', 'max:255'],
-        'financial_profile' => ['required', 'string', 'exists:FinancialProfiles'],
-        'first_name' => ['required', 'alpha', 'string', 'min:2'],
-        'last_name' => ['required', 'alpha', 'string', 'min:2'],
-      ]);
+        return Validator::make($data, [
+            'id' => ['required', 'integer', 'unique:Users'],
+            'cpf' => ['required',
+                    'regex:/^[0-9]{3}\.[0-9]{3}\.[0-9]{3}\-[0-9]{2}$/m',
+                    'string',
+                    'max:14',
+                    'unique:Customers'],
+            'password' => ['required', 'string', 'max:255'],
+            'financial_profile' => ['required', 'string', 'exists:FinancialProfiles'],
+            'first_name' => ['required', 'alpha', 'string', 'min:2'],
+            'last_name' => ['required', 'alpha', 'string', 'min:2'],
+        ]);
     }
 
     /**
@@ -179,7 +179,7 @@ class Customers extends Authenticatable
     /**
      * Gets the user by the given CPF
      *
-     * @return null|App\Customer
+     * @return null|App\Customers
     */
     public static function getByCpf(string $cpf) {
         return self::where('cpf', $cpf)->first();
@@ -211,14 +211,13 @@ class Customers extends Authenticatable
      * @return App\Contracts
      */
     public function contracts() {
-        $contracts = DB::table('Contracts')
-                         ->join('CoWalletsJunctions', function ($join) {
+        $contracts = DB::table('CoWalletsJunctions')
+                         ->join('Contracts', function ($join) {
                              $join->on('CoWalletsJunctions.id_wallet', '=', 'Contracts.id_wallet')
                                   ->on('CoWalletsJunctions.id_customer', '=', $this->id);
                          })
                          ->join('Customers',
-                                'CoWalletsJunctions.id_customer', '=', $this->id)
-                         ->get();
+                                'CoWalletsJunctions.id_customer', '=', $this->id);
 
         return $contracts;
     }

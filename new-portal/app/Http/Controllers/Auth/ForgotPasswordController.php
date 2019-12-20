@@ -86,20 +86,21 @@ class ForgotPasswordController extends Controller
     public function sendConsultantResetPassword() {
         $values = request()->only(['cpf']);
 
+        $validation_result = Users::userDataValidator($values);
         // verifies if the cpf is correctly formatted
-        if($response = handler()->handleThis(Users::userDataValidator($values))
+        if($response = handler()->handleThis($validation_result)
             ->ifValidationFailsRedirect('/')) {
-                return $response;
+                return $response->withErrors($validation_result);
         }
 
         // gets the user by the cpf
-        $customer = Consultants::getByCpf($values['cpf']);
+        $consultant = Consultants::getByCpf($values['cpf']);
 
         // verifies if the user exists
-        if($customer === null)
+        if($consultant === null)
             return back()->with('error', 'the CPF inputted doesn\'t exists');
 
-        $user_email = (string) $customer->email();
+        $user_email = (string) $consultant->email();
 
         Mail::to($user_email)->send(new PasswordResetMailable());
     }

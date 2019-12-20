@@ -88,7 +88,9 @@ class RegisterController extends Controller
         if($response = handler()->handleThis($result)->ifValidationFailsRedirect(self::CUSTOMER_REGISTER_URL))
             return $response->withErrors($result);
 
-        $new_user->saveUsersRelationalsTablesData($request);
+        $result = $new_user->saveUsersRelationalsTablesData($request);
+        if($response = handler()->handleThis($result)->ifValidationFailsRedirect(self::CUSTOMER_REGISTER_URL))
+            return $response->withErrors($result);
         DB::commit();
       });
     }

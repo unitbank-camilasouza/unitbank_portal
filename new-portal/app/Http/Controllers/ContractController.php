@@ -7,10 +7,10 @@ use App\Contracts;
 use App\CoWalletsJunctions;
 use App\CurrentContracts;
 use App\Customers;
+use App\Users;
 use App\Wallets;
 use Exception;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Gate;
 
 class ContractController extends Controller
 {
@@ -73,16 +73,18 @@ class ContractController extends Controller
      * @param App\Contracts $contract
     */
     public function showsContractDetails(Contracts $contract) {
-
-        // TODO: makes a inner join with customer
-        return view('contract.show_details', ['contract' => $contract]);
+        $data['contract'] = $contract;
+        $data['current_contract'] = $contract->currentContract();
+        $data['customers'] = $contract->customers()->get();
+        $data['withdrawals'] = $contract->withdrawals()->get();
+        $data['yields'] = $contract->yields()->get();
+        return view('contract.show_details', $data);
     }
 
     /**
      * Gets all Contracts from the current user, a specifc user or all contracts
      *
      * @param Illuminate\Http\Request $request
-     * @param null|App\Customers $customer
      * @return \Illuminate\View\View|\Illuminate\Contracts\View\Factory
     */
     public function showsContracts(Request $request) {

@@ -16,6 +16,16 @@ use Illuminate\Support\Facades\Route;
 class AppServiceProvider extends ServiceProvider
 {
     /**
+     *
+     */
+    protected $bindsId = [
+        'yield' => \App\Yields::class,
+        'customer' => \App\Customers::class,
+        'withdraw' => \App\Withdrawals::class,
+        'contract' => \App\Contracts::class,
+    ];
+
+    /**
      * Register any application services.
      *
      * @return void
@@ -37,41 +47,18 @@ class AppServiceProvider extends ServiceProvider
         view()->share('gender', Genders::all());
         view()->share('marital_status', MaritalStatus::all());
 
-        Route::bind('customer', function ($value) {
-            try {
-                $id_customer = decrypt($value);
-                return \App\Customers::findOrFail($id_customer);
-            } catch (DecryptException $e) {
-                return abort(404);
-            }
-        });
 
-        Route::bind('contract', function ($value) {
-            try {
-                $id_contract = decrypt($value);
-                return \App\Contracts::findOrFail($id_contract);
-            } catch (DecryptException $e) {
-                return abort(404);
-            }
-        });
-
-        Route::bind('withdraw', function ($value) {
-            try {
-                $id_withdraw = decrypt($value);
-                return \App\Withdrawals::findOrFail($id_withdraw);
-            } catch (DecryptException $e) {
-                return abort(404);
-            }
-        });
-
-        Route::bind('yield', function ($value) {
-            try {
-                $id_yield = decrypt($value);
-                return \App\Yields::findOrFail($id_yield);
-            } catch (DecryptException $e) {
-                return abort(404);
-            }
-        });
+        // loop to define all routing bindings
+        foreach ($this->bindsId as $bind_key_id => $bind_class) {
+            Route::bind($bind_key_id, function ($value) use ($bind_class) {
+                try {
+                    $id = decrypt($value);
+                    return $bind_class::findOrFail($id);
+                } catch (DecryptException $e) {
+                    return abort(404);
+                }
+            });
+        }
 
         Gate::define('request-contract-details', function ($contract) {
             dd($contract);

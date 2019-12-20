@@ -1,4 +1,6 @@
 <?php
+// Author: Davi Mendes Pimentel
+// last modified date: 20/12/2019
 
 namespace App\Singletons;
 
@@ -22,14 +24,24 @@ class ValidatorHandler {
 
   private $last_validation_result = NONE;
 
+  /**
+   * Handle with this $validator instance
+   *
+   * @return $this
+   */
   public function handleThis($validator) {
 
+    /**
+     * Verifies if the @param $validator is
+     * a instance of \Illuminate\Validation\Validator
+     */
     if($validator instanceof Validator)
       if($validator->fails())
         $this->last_validation_result = FAIL;
       else
         $this->last_validation_result = SUCCESS;
 
+    // returns $this anyway
     return $this;
   }
 
@@ -56,17 +68,46 @@ class ValidatorHandler {
    * if not, returns this ValidatorHandler object
    *
    * @param Closure $fail_function
-   * @return null|\Singletons\ValidatorHandler
+   * @return null|\Closure
    */
   public function ifValidationFails(Closure $fail_function) {
     // verify if the last validation exists and if has fail
-    if($this->last_validation_result != NONE && ! $this->last_validation_result)
-      $fail_function();
+    if($this->last_validation_result !== NONE && ! $this->last_validation_result) {
+      return $fail_function();
+    }
 
     // if has no failures occurred, returns null
     return null;
   }
 
+  /**
+   * Returns $this or $other_to_return value if a fail has occurred,
+   * if not, returns nullm like a "signal" of an error ocurred
+   *
+   * @param mixed $other_to_return
+   * @return null|mixed|$this
+   */
+  public function ifValidationFailsReturnsThis($other_to_return = null) {
+
+    $value_to_return = $this;
+    if($other_to_return) {
+        $value_to_return = $other_to_return;
+    }
+
+    // verify if the last validation exists and if has fail
+    if($this->last_validation_result !== NONE && ! $this->last_validation_result) {
+      return $value_to_return;
+    }
+
+    // if has no failures occurred, returns null
+    return null;
+  }
+
+  /**
+   * Gets the validator handler
+   *
+   * @return \App\Singletons\ValidatorHandler
+   */
   public static function __callstatic($arg1, $arg2) {
     if(self::$validatorHandler === null)
       self::$validatorHandler = new ValidatorHandler();
