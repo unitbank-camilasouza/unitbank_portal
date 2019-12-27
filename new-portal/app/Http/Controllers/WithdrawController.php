@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Contracts;
 use App\Withdrawals;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -25,27 +26,6 @@ class WithdrawController extends Controller
      */
     public function showsWithdraws() {
         return view('withdraw.show_all');
-    }
-
-    /**
-     * Saves a new Withdraw in database
-     *
-     * @param Illuminate\Http\Request $request
-     * @return \Illuminate\Http\RedirectResponse
-    */
-    public function saveWithdraw(Request $request) {
-        $this->middleware('auth:consultant');
-
-        // transaction block:
-        return DB::transaction(function () use ($request) {
-            $result = handler()->handleThis(Withdrawals::createByRequest($request));
-
-            if($response = $result->ifValidationFailsRedirect('/'))
-                return $response;
-
-            DB::commit();
-            return redirect()->route('home')->with('success_message', 'Withdraw successly saved');
-        });
     }
 
     /**
@@ -74,8 +54,10 @@ class WithdrawController extends Controller
      * @return \Illuminate\View\View|\Illuminate\Contracts\View\Factory
     */
     public function showsWithdrawDetails(Withdrawals $withdraw) {
-        // TODO: makes a inner join with customer
-        return view('withdraw.show_details', ['withdraw' => $withdraw]);
+        $data['withdraw'] = $withdraw;
+        $data['contract'] = $withdraw->contract();
+        $data['customers'] = $withdraw->contract()->customers();
+        return view('withdraw.show_details', $data);
     }
 
     /**
@@ -90,9 +72,27 @@ class WithdrawController extends Controller
     /**
      * Makes a withdraw of a Contract and save it on the database
      *
-     * @return App\Withdrawals
+     * @param \Illuminate\Http\Request
+     * @param \App\Contracts
+     * @return null|\Illuminate\Routing\Redirector|\Illuminate\Http\RedirectResponse|\App\Withdrawals
      */
-    public function makeAWithdraw(Contracts $contract) {
-        // TODO: make the withdraw
+    public function makeAWithdraw(Request $request, Contracts $contract) {
+        $withdraw_value = $request->input('withdraw_value');
+
+        $request->merge([
+            'id_contract' => $contract->id,
+            'id_wallet' => $contract->id_wallet,
+            'value' => $withdraw_value,
+        ]);
+
+        $result = Withdrawals::createByRequest($request);
+        if($response = handler()->handleThis($result)->ifValidationFailsRedirect($request->url()))
+            return $response;
+
+        // ***********************
+        // TODO: generate the log
+        // ***********************
+
+        return $result;
     }
 }

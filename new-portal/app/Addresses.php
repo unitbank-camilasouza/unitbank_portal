@@ -75,13 +75,13 @@ class Addresses extends Model
       * Validates the address data
       *
       * @param array $data
-      * @return \Illuminate\Support\Facades\Validator
+      * @return \\Illuminate\Contracts\Validation\Validator
       */
     public static function validator(array $data) {
       return Validator::make($data, [
-        'id_user' => ['required', 'integer', 'exists:Users'],
+        'id_user' => ['required', 'integer', 'exists:Users,id'],
         'street' => ['required', 'string', 'max:150', 'min:3'],
-        'number' => ['required', 'integer', 'max:7'],
+        'number' => ['required', 'integer', 'max:100000'],
         'complement' => ['required', 'string', 'max:70'],
         'region' => ['required', 'string', 'max:70'],
         'city' => ['required', 'string', 'max:40'],

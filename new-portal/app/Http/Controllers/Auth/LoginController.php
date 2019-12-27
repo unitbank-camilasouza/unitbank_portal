@@ -6,6 +6,7 @@ use App\Consultants;
 use App\Customers;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class LoginController extends Controller
@@ -94,11 +95,12 @@ class LoginController extends Controller
         $values = request()->only(['cpf', 'password']);
 
         // generates the validator
-        $validator_result = Consultants::consultantLoginDataValidator($values);
+        $validation_result = Consultants::consultantLoginDataValidator($values);
 
         // verifies if an invalid input has getted
-        if($response = handler()->handleThis($validator_result)->ifValidationFailsRedirect(self::CONSULTANT_LOGIN_URL))
-            return $response->withErrors($validator_result);
+        if($response = handler()->handleThis($validation_result)->ifValidationFailsRedirect(self::CONSULTANT_LOGIN_URL)) {
+            return $response->withErrors($validation_result);
+        }
 
         // tries to login with a consultant account
         if(auth('consultant')->attempt($values))
@@ -118,15 +120,15 @@ class LoginController extends Controller
         $values = request()->only(['cpf', 'password']);
 
         // generates the validator
-        $validator_result = Customers::customerLoginDataValidator($values);
+        $validation_result = Customers::customerLoginDataValidator($values);
 
         // verifies if an invalid input has getted
-        if($response = handler()->handleThis($validator_result)->ifValidationFailsRedirect(self::CUSTOMER_LOGIN_URL))
-            return $response->withErrors($validator_result);
+        if($response = handler()->handleThis($validation_result)->ifValidationFailsRedirect(self::CUSTOMER_LOGIN_URL))
+            return $response->withErrors($validation_result);
 
         // tries to login with a consultant account
         if(auth('customer')->attempt($values))
-            return redirect('/home');
+            return redirect()->route('home');
 
         // if the user cannot login, return back with 'invalid credentials' message
         $back_response = back()->with('error_message', 'invalid credentials');

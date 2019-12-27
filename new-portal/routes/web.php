@@ -165,11 +165,13 @@ Route::prefix('home')->middleware(['auth'])->group(function () {
 
         // route to show the save contract form
         Route::get('save-new-contract', 'ContractController@showSaveContractForm')
-               ->middleware(['auth:consultant']);
+               ->middleware(['auth:consultant'])
+               ->name('save_new_contract_form');
 
         // route to save a new contract
         Route::post('save-new-contract', 'ContractController@saveContract')
-               ->middleware(['auth:consultant']);
+               ->middleware(['auth:consultant'])
+               ->name('save_new_contract');
     });
 
 

@@ -17,12 +17,12 @@ class PhysicalPersons extends Model
      * @var array
      */
     public $fillable = ['id',
-                         'nationality',
-                         'born_date',
-                         'gender',
-                         'father_name',
-                         'mother_name',
-                         'marital_status'];
+                        'nationality',
+                        'born_date',
+                        'gender',
+                        'father_name',
+                        'mother_name',
+                        'marital_status'];
     /**
       *
       * Allows that this model be saved in database
@@ -47,12 +47,12 @@ class PhysicalPersons extends Model
             'marital_status'
         ]);
 
-        $person_data['id'] = $request->input('user_id');
+        $person_data['id'] = $request->input('id_user');
 
         // verify data
-        $result = self::physicalPersonDataValidator($person_data);
-        if($response = handler()->handleThis($result)->ifValidationFailsRedirect($request->url()))
-            return $response->withInput();
+        $validation_result = self::physicalPersonDataValidator($person_data);
+        if($validation_result->fails())
+            return $validation_result;
 
         $new_physical_person = PhysicalPersons::create($person_data);
 
@@ -61,7 +61,13 @@ class PhysicalPersons extends Model
             $new_physical_person->saveConsort($request);
         }
 
-        $new_physical_person->saveDocuments($request);
+        $request->merge([
+            'id_physical_person' => $new_physical_person->id,
+        ]);
+
+        $new_document_result = $new_physical_person->saveDocuments($request);
+        if(handler($new_document_result)->ifValidationFailsReturnsThis())
+            return $new_document_result;
 
         return $new_physical_person;
     }
@@ -70,11 +76,11 @@ class PhysicalPersons extends Model
      * Validates data of a physical person by the array
      *
      * @param array $data
-     * @return Illuminate\Support\Facades\Validator
+     * @return \Illuminate\Contracts\Validation\Validator
      */
     public static function physicalPersonDataValidator(array $data) {
       return Validator::make($data, [
-        'id' => ['required', 'integer', 'unique:Customers'],
+        'id' => ['required', 'integer', 'exists:Customers'],
         'nationality' => ['required', 'string', 'exists:Nationalities'],
         'born_date' => ['required', 'date'],
         'gender' => ['required', 'string', 'exists:Genders'],

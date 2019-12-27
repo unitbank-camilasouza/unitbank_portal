@@ -29,11 +29,12 @@ class Withdrawals extends Model
             'id_contract', 'id_wallet', 'value'
         ]);
 
-        // verifies if
-        $validation_result = handler()->handleThis(self::validator($withdraw_values));
+        // verifies if the validation fails
+        $validation_result = self::validator($withdraw_values);
         if($validation_result->fails())
             return $validation_result;
 
+        // get the current contract of the withdraw and sub the value of it
         $contract = CurrentContracts::findOrFail($withdraw_values['id_contract']);
         $withdraw_values['previous_value'] = $contract->value;
 
@@ -47,7 +48,7 @@ class Withdrawals extends Model
      * Validates the Withdraw data with array param
      *
      * @param array $data
-     * @return Illuminate\Support\Facades\Validator
+     * @return \Illuminate\Contracts\Validation\Validator
      */
     public function validator($data) {
         return Validator::make($data, [
@@ -55,5 +56,14 @@ class Withdrawals extends Model
             'id_wallet' => ['bail', 'integer', 'exists:Wallets,id'],
             'value' => ['bail', 'numeric', 'gt:0'],
         ]);
+    }
+
+    /**
+     * Gets the Withdraw's Contract instance
+     *
+     * @return \App\Contracts
+     */
+    public function contract() {
+        return Contracts::findOrFail($this->id_contract);
     }
 }

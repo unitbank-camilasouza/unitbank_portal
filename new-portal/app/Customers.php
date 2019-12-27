@@ -26,7 +26,6 @@ class Customers extends Authenticatable
     protected $fillable = [
         'id',
         'id_consultant',
-        'id_wallet',
         'first_name',
         'last_name',
         'cpf',
@@ -99,16 +98,16 @@ class Customers extends Authenticatable
             'cpf', 'first_name', 'last_name'
         ]);
 
-        $customer_data['id'] = $request->input('user_id');
+        $customer_data['id'] = $request->input('id_user');
         $customer_data['password'] = Hash::make(
             $request->input('password')
         );
-        $customer_data['financial_profile'] = $request->input('financial_profile');
+        $customer_data['financial_profile'] = $request->input('financial_profile', 'amateur');
 
         // verify the data passed by request
-        $result = self::customerDataValidator($customer_data);
-        if($response = handler()->handleThis($result)->ifValidationFailsRedirect($request->url()))
-            return $response->withErrors($result);
+        $validation_result = self::validator($customer_data);
+        if($validation_result->fails())
+            return $validation_result;
 
         $new_customer = self::create($customer_data); // saves the new customer instance
 
@@ -122,10 +121,9 @@ class Customers extends Authenticatable
     /**
      * Saves a new relationship instance with wallets by request
      *
-     * @param \Illuminate\Http\Request $request
      * @return boolean
      */
-    public function createWallet(Request $request) {
+    public function createWallet() {
         $new_wallet = Wallets::create(); // create a new wallet instance
 
         // creates a new co-wallets instance to
@@ -142,13 +140,13 @@ class Customers extends Authenticatable
      * Validates data of a customer by the array
      *
      * @param array $data
-     * @return Illuminate\Support\Facades\Validator
+     * @return \Illuminate\Contracts\Validation\Validator
      */
-    public static function customerDataValidator(array $data) {
+    public static function validator(array $data) {
         return Validator::make($data, [
-            'id' => ['required', 'integer', 'unique:Users'],
+            'id' => ['required', 'integer', 'exists:Users'],
             'cpf' => ['required',
-                    'regex:/^[0-9]{3}\.[0-9]{3}\.[0-9]{3}\-[0-9]{2}$/m',
+                    'regex:' . Users::CPF_REGEX,
                     'string',
                     'max:14',
                     'unique:Customers'],
@@ -163,7 +161,7 @@ class Customers extends Authenticatable
      * Validates login data of a customer by the array
      *
      * @param array $data
-     * @return Illuminate\Support\Facades\Validator
+     * @return \Illuminate\Contracts\Validation\Validator
     */
     public static function customerLoginDataValidator(array $data) {
         return Validator::make($data, [
@@ -171,7 +169,7 @@ class Customers extends Authenticatable
                       'regex:' . Users::CPF_REGEX,
                       'string',
                       'max:14',
-                      'unique:Customers'],
+                      'exists:Customers'],
             'password' => ['required', 'string', 'max:255']
         ]);
     }
@@ -199,16 +197,29 @@ class Customers extends Authenticatable
     /**
      * Gets all customer's CoWallets
      *
-     * @return App\CoWalletsJunctions
+     * @return \App\CoWalletsJunctions
      */
     public function coWalletsJunctions() {
         return $this->belongsToMany('\App\CoWalletsJunctions');
     }
 
     /**
+     * Gets all customer's Wallets
+     *
+     * @return \App\Wallets
+     */
+    public function wallets() {
+        $co_wallets = $this->coWalletsJunctions()->get();
+
+        foreach ($co_wallets as $co_wallet) {
+            return Wallets::where('id', $co_wallet->id_wallet)->firstOrFail();
+        }
+    }
+
+    /**
      * Gets all customer's Contracts
      *
-     * @return App\Contracts
+     * @return \App\Contracts
      */
     public function contracts() {
         $contracts = DB::table('CoWalletsJunctions')
@@ -220,5 +231,28 @@ class Customers extends Authenticatable
                                 'CoWalletsJunctions.id_customer', '=', $this->id);
 
         return $contracts;
+    }
+
+    /**
+     * Gets all customer's CurrentContracts
+     *
+     * @return \App\CurrentContracts
+     */
+    public function currentContracts() {
+        $current_contracts = CurrentContracts::join('Contracts',
+                                                    'Contracts.id',
+                                                    '=',
+                                                    'CurrentContracts.id')
+                                             ->join('CoWalletsJunctions',
+                                                    'CoWalletsJunctions.id_wallet',
+                                                    '=',
+                                                    'Contracts.id_wallet')
+                                             ->join('Customers',
+                                                    'Customers.id',
+                                                    '=',
+                                                    'CoWalletsJunctions.id_customer')
+                                             ->where('Customers.id', $this->id);
+
+        return $current_contracts;
     }
 }

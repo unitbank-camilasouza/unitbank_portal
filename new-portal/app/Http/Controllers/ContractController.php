@@ -38,9 +38,9 @@ class ContractController extends Controller
 
         // transaction block:
         return DB::transaction(function () use ($request) {
-            $result = handler()->handleThis(Contracts::createByRequest($request));
+            $result = Contracts::createByRequest($request);
 
-            if($response = $result->ifValidationFailsRedirect('/'))
+            if($response = handler()->handleThis($result)->ifValidationFailsRedirect('/'))
                 return $response;
 
             DB::commit();
@@ -92,15 +92,7 @@ class ContractController extends Controller
 
         $contracts = [];
         if ($request->ajax()) {
-            if(auth('customer')->check()) {
-                $customer = Customers::findOrFail(auth('customer')->id());
-                $contracts = $customer->contracts();
-            } else {
-                $contracts = CurrentContracts::join('Contracts', 'Contracts.id', 'CurrentContracts.id')
-                                               ->limit(200)->paginate(20);
-            }
-
-            return response()->json($contracts);
+            return $this->ajaxAllContractsResponse();
         } else if (auth('consultant')->check() || auth('admin')->check()) {
             $contracts = DB::table('Contracts')
                              ->join('CoWalletsJunctions',
@@ -125,5 +117,22 @@ class ContractController extends Controller
      */
     public function showSaveContractForm () {
         return view('contract.save_form');
+    }
+
+    /**
+     * Returns a ajax response of all contracts
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function ajaxAllContractsResponse() {
+        if(auth('customer')->check()) {
+            $customer = Customers::findOrFail(auth('customer')->id());
+            $contracts = $customer->contracts();
+        } else {
+            $contracts = CurrentContracts::join('Contracts', 'Contracts.id', 'CurrentContracts.id')
+                                           ->limit(200)->paginate(20);
+        }
+
+        return response()->json($contracts);
     }
 }

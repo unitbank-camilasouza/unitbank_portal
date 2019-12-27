@@ -10,6 +10,19 @@ class Documents extends Model
 {
     protected $table = 'Documents';
 
+    public $timestamps = true;
+
+    const CREATED_AT = 'inserted_at';
+
+    protected $fillable = [
+        'id_physical_person',
+        'document_type',
+        'doc_number',
+        'issue_date',
+        'issuing_organ',
+        'uf',
+    ];
+
     /**
      * Creates a Document by request param
      *
@@ -22,13 +35,13 @@ class Documents extends Model
             'document_type',
             'doc_number',
             'issue_date',
-            'issue_organ',
+            'issuing_organ',
             'uf',
         ]);
 
         $validation_result = self::validator($document_data);
-        if($response = handler()->handleThis($validation_result)->ifValidationFailsRedirect($request->url()))
-            return $response->withErrors($validation_result);
+        if($validation_result->fails())
+            return $validation_result;
 
         return self::create($document_data);
     }
@@ -41,11 +54,11 @@ class Documents extends Model
      */
     public static function validator(array $values) {
         return Validator::make($values, [
-            'id_physical_person' => ['required', 'integer', 'unique:PhysicalPersons,id'],
-            'document_type' => ['required', 'string', 'unique:DocumentTypes,document_type'],
+            'id_physical_person' => ['required', 'integer', 'exists:PhysicalPersons,id'],
+            'document_type' => ['required', 'string', 'exists:DocumentTypes,document_type'],
             'doc_number' => ['required', 'string', 'max:30'],
             'issue_date' => ['required', 'date'],
-            'issue_organ' => ['required', 'string', 'max:90'],
+            'issuing_organ' => ['required', 'string', 'max:90'],
             'uf' => ['required', 'string', 'max:2'],
         ]);
     }

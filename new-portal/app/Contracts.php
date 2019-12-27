@@ -30,7 +30,7 @@ class Contracts extends Model
      *
      * @var boolean $timestamps
      */
-    protected $timestamps = false;
+    public $timestamps = false;
 
     /**
      * The available dates columns
@@ -77,9 +77,9 @@ class Contracts extends Model
      */
     public static function validator($data) {
         return Validator::make($data, [
-            'id_wallet' => ['bail', 'required', 'integer', 'unique:Wallets,id'],
-            'contract_status' => ['bail', 'required', 'string', 'unique:ContractStatus,contract_status'],
-            'product' => ['bail', 'required', 'string', 'unique:Products,product'],
+            'id_wallet' => ['bail', 'required', 'integer', 'exists:Wallets,id'],
+            'contract_status' => ['bail', 'required', 'string', 'exists:ContractStatus,contract_status'],
+            'product' => ['bail', 'required', 'string', 'exists:Products,product'],
             'value' => ['bail', 'required', 'numeric'],
             'started_at' => ['bail', 'date', 'after_or_equal:2019-01-01'],
         ]);
@@ -91,10 +91,7 @@ class Contracts extends Model
      * @return \Illuminate\Database\Query\Builder
      */
     public function customers() {
-        $co_wallets = $this->coWallets();
-        $co_wallets->join;
-
-        // return $this->belongsToMany('\App\Customers');
+        return $this->belongsToMany('\App\Customers');
     }
 
     /**

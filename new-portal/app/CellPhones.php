@@ -28,7 +28,7 @@ class CellPhones extends Model
      * @const array VALIDATION_RULES
     */
     const VALIDATION_RULES = [
-        'id_user' => ['required', 'integer', 'exists:Users'],
+        'id_user' => ['required', 'integer', 'exists:Users,id'],
         'phone_number' => ['bail',
                       'required',
                       'string',
@@ -52,6 +52,7 @@ class CellPhones extends Model
 
       return CellPhones::create($phone_data);  // creates and saves the phone number
     }
+
 
     public static function validator(array $data) {
       return Validator::make($data, self::VALIDATION_RULES);

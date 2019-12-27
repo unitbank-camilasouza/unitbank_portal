@@ -13,7 +13,7 @@ namespace App\Singletons;
  */
 
 use Closure;
-use Illuminate\Validation\Validator;
+use \Illuminate\Contracts\Validation\Validator;
 
 const NONE = null;  // represents nothing
 const SUCCESS = true;   // represents success
@@ -23,6 +23,16 @@ class ValidatorHandler {
   private static $validatorHandler = null;
 
   private $last_validation_result = NONE;
+  private $lastest_validator = null;
+
+  /**
+   * Gets the lastest validator
+   *
+   * @return \Illuminate\Contracts\Validation\Validator|null
+   */
+  public function getLastestValidator() {
+      return $this->lastest_validator;
+  }
 
   /**
    * Handle with this $validator instance
@@ -35,11 +45,13 @@ class ValidatorHandler {
      * Verifies if the @param $validator is
      * a instance of \Illuminate\Validation\Validator
      */
-    if($validator instanceof Validator)
+    if($validator instanceof \Illuminate\Contracts\Validation\Validator) {
+      $this->lastest_validator = $validator;
       if($validator->fails())
         $this->last_validation_result = FAIL;
       else
         $this->last_validation_result = SUCCESS;
+    }
 
     // returns $this anyway
     return $this;
@@ -113,6 +125,15 @@ class ValidatorHandler {
       self::$validatorHandler = new ValidatorHandler();
 
     return self::$validatorHandler;
+  }
+
+  /**
+   * Returns $this as a String
+   *
+   * @return string
+   */
+  public function __toString() {
+      return json_encode($this);
   }
 }
 

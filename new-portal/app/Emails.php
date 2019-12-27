@@ -31,7 +31,7 @@ class Emails extends Model
            'email', 'id_user'
         ]);
 
-       $validation_result = self::emailDataValidator($email_data); // verify if the data are correct
+       $validation_result = self::validator($email_data); // verify if the data are correct
        if($validation_result->fails())
             return $validation_result;
 
@@ -42,12 +42,12 @@ class Emails extends Model
       * Validates email data by array
       *
       * @param array $data
-      * @return Illuminate\Support\Facades\Validator
+      * @return \Illuminate\Contracts\Validation\Validator
       */
-     public static function emailDataValidator(array $data) {
+     public static function validator(array $data) {
        return Validator::make($data, [
          'email' => ['required', 'email'],
-         'id_user' => ['required', 'integer', 'exists:Users'],
+         'id_user' => ['required', 'integer', 'exists:Users,id'],
        ]);
      }
 

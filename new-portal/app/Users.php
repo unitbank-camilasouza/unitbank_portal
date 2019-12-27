@@ -19,7 +19,7 @@ class Users extends Model
     public $dates = ['updated_at',
                      'registered_at'];
 
-    public $fillable = ['cpf', 'password'];
+    public $fillable = ['cpf', 'user_table'];
 
     const CREATED_AT = 'registered_at';
     const DELETED_AT = 'disabled_at';
@@ -31,16 +31,20 @@ class Users extends Model
                   'regex:' . self::CPF_REGEX,
                   'string',
                   'max:14'],
+        'user_table' => ['bail',
+                         'required',
+                         'string',
+                         'alpha']
     ];
 
     /**
       * Create and Saves a new user instance with request param
       *
-      * @param Request $request
-      * @return App\Users|Illuminate\Support\Facades\Validator
+      * @param \Illuminate\Http\Request $request
+      * @return \App\Users|\Illuminate\Support\Facades\Validator
       */
     public static function createByRequest(Request $request) {
-      $user_data['cpf'] = request()->input('cpf');
+      $user_data['user_table'] = $request->input('user_table');
 
       $validation_result = self::validator($user_data);
 
@@ -54,10 +58,12 @@ class Users extends Model
      * Validates the user data with array param
      *
      * @param array $data
-     * @return Illuminate\Support\Facades\Validator
+     * @return \Illuminate\Contracts\Validation\Validator
      */
     public static function validator(array $data) {
-      return Validator::make($data, self::USER_VALIDATOR_RULES);
+      return Validator::make($data, [
+          'user_table' => self::USER_VALIDATOR_RULES['user_table']
+          ]);
     }
 
     /**
@@ -68,26 +74,24 @@ class Users extends Model
      * @return bool
      */
     public function saveUsersRelationalsTablesData(Request $request) {
-      $request->merge(['id_user' => $this->id]);
-
       // creates the relationals data tables
       $result = handler()->handleThis(Addresses::createByRequest($request));
 
       // verifies if the inputs is valids
-      if ($response = $result->ifValidationFailsRedirect('/register'))
-        return $response->withErrors($result);
+      if ($result->ifValidationFailsReturnsThis())
+        return $result->getLastestValidator();
 
       $result = handler()->handleThis(Emails::createByRequest($request));
 
       // verifies if the inputs is valids
-      if ($response = $result->ifValidationFailsRedirect('/register'))
-        return $response->withErrors($result);
+      if ($result->ifValidationFailsReturnsThis())
+        return $result->getLastestValidator();
 
       $result = handler()->handleThis(CellPhones::createByRequest($request));
 
       // verifies if the inputs is valids
-      if ($response = $result->ifValidationFailsRedirect('/register'))
-        return $response->withErrors($result);
+      if ($result->ifValidationFailsReturnsThis())
+        return $result->getLastestValidator();
 
       return true;
     }
@@ -150,7 +154,7 @@ class Users extends Model
      * @return mixed
     */
     public function cellPhones() {
-        // TODO: return the cellphones
-        return ;
+        $cellphones = CellPhones::where('id_user', $this->id);
+        return $cellphones;
     }
 }

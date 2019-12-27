@@ -27,7 +27,7 @@ class CurrentContracts extends Model
      *
      * @var boolean $timestamps
      */
-    protected $timestamps = false;
+    public $timestamps = false;
 
     /**
      * The available dates columns

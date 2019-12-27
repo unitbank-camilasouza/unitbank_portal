@@ -64,34 +64,50 @@ class RegisterController extends Controller
 
         $new_user = $result;
 
+        $request->merge(['id_user' => $new_user->id]);
+
         $result = Customers::createByRequest($request);  // save a new customer
 
         // verify if any invalid input has ocurred
-        if($response = handler()->handleThis($result)->ifValidationFailsRedirect(self::CUSTOMER_REGISTER_URL))
+        if($response = handler()->handleThis($result)->ifValidationFailsRedirect(self::CUSTOMER_REGISTER_URL)) {
+            DB::rollBack();
             return $response->withErrors($result);
+        }
 
         // verify which person type is the user
-        if($request->input('person_type', 'physical_person') == 'physical_person')
-          $result = PhysicalPersons::createByRequest($request);  // if is a physical person
+        if($request->input('person_type', 'physical_person') == 'physical_person') {
+            $result = PhysicalPersons::createByRequest($request);  // if is a physical person
 
-          if($response = handler()->handleThis($result)->ifValidationFailsRedirect(self::CUSTOMER_REGISTER_URL))
-            return $response->withErrors($response);
-        else if($request->input('person_type') == 'legal_person')
-          $result = LegalPersons::createByRequest($request); // if is a legal person
+            if($response = handler()->handleThis($result)->ifValidationFailsRedirect(self::CUSTOMER_REGISTER_URL)){
+                DB::rollBack();
+                return $response->withErrors($result);
+            }
+        }
+        else if($request->input('person_type') == 'legal_person') {
+            $result = LegalPersons::createByRequest($request); // if is a legal person
 
-          if($response = handler()->handleThis($result)->ifValidationFailsRedirect(self::CUSTOMER_REGISTER_URL))
-            return $response->withErrors($response);
+            if($response = handler()->handleThis($result)->ifValidationFailsRedirect(self::CUSTOMER_REGISTER_URL)){
+                DB::rollBack();
+                return $response->withErrors($result);
+            }
+        }
         else
-          return redirect()->route('register'); // if is undefined, may be a hacker
+          return redirect()->route('register_customer'); // if is undefined, may be a hacker
 
         // verify if any invalid input has ocurred
-        if($response = handler()->handleThis($result)->ifValidationFailsRedirect(self::CUSTOMER_REGISTER_URL))
+        if($response = handler()->handleThis($result)->ifValidationFailsRedirect(self::CUSTOMER_REGISTER_URL)){
+            DB::rollBack();
             return $response->withErrors($result);
+        }
 
         $result = $new_user->saveUsersRelationalsTablesData($request);
-        if($response = handler()->handleThis($result)->ifValidationFailsRedirect(self::CUSTOMER_REGISTER_URL))
+        if($response = handler()->handleThis($result)->ifValidationFailsRedirect(self::CUSTOMER_REGISTER_URL)){
+            DB::rollBack();
             return $response->withErrors($result);
+        }
         DB::commit();
+
+        return redirect()->route('home');
       });
     }
 
@@ -100,32 +116,48 @@ class RegisterController extends Controller
      *
      * @return mixed
     */
-    public function registerConsultant() {
+    public function registerConsultant(Request $request) {
         $this->middleware('auth:admin');    // verify if the current user is an admin
 
         // creates a new transaction to errors cases
-        return DB::transaction( function () {
-            $request = request(); // gets this request instance
+        return DB::transaction( function () use ($request) {
             $request->merge([
                 'user_table' => 'Consultants',
             ]);
 
             $result = Users::createByRequest($request);  // save a new user
 
-            // verify if any invalid input has ocurred
-            if($response = handler()->handleThis($result)->ifValidationFailsRedirect(self::CONSULTANT_REGISTER_URL))
-                return $response->withErrors($result);
+            // verify if any invalid input has occurred
+            if($error_response = handler()->handleThis($result)->ifValidationFailsRedirect(self::CONSULTANT_REGISTER_URL)) {
+                DB::rollBack();
+                return $error_response->withErrors($result);
+            }
 
             $new_user = $result;
 
+            // merge the new user ID with the request
+            $request->merge([
+                'id_user' => $new_user->id
+            ]);
+
             $result = Consultants::createByRequest($request);  // save a new customer
 
-            // verify if any invalid input has ocurred
-            if($response = handler()->handleThis($result)->ifValidationFailsRedirect(self::CONSULTANT_REGISTER_URL))
-                return $response->withErrors($result);
+            // verify if any invalid input has occurred
+            if($error_response = handler()->handleThis($result)->ifValidationFailsRedirect(self::CONSULTANT_REGISTER_URL)){
+                DB::rollBack();
+                return $error_response->withErrors($result);
+            }
 
-            $new_user->saveUsersRelationalsTablesData($request);
+            $result = $new_user->saveUsersRelationalsTablesData($request);
+
+            // verify if any invalid input has occurred
+            if($error_response = handler()->handleThis($result)->ifValidationFailsRedirect(self::CONSULTANT_REGISTER_URL)){
+                DB::rollBack();
+                return $error_response->withErrors($result);
+            }
+
             DB::commit();
+            return redirect()->route('home');
         });
     }
 

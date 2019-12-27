@@ -44,7 +44,7 @@ class Consultants extends Authenticatable
      *
      * @var array
      */
-    public $timestamps = true;
+    public $timestamps = false;
 
     /**
      * defines the dates of the user will use
@@ -70,20 +70,21 @@ class Consultants extends Authenticatable
     /**
       * Create and Saves a new consultant instance by request param
       *
-      * @param Request $request
-      * @return App\Consultants
+      * @param \Illuminate\Http\Request $request
+      * @return \App\Consultants
       */
       public static function createByRequest(Request $request) {
         // gets some data to save consultant instance
         $consultant_data = $request->only([
-          'cpf', 'first_name', 'last_name'
+          'cpf', 'first_name', 'last_name', 'password'
         ]);
 
-        $consultant_data['id'] = session()->get('user_id');
+        $consultant_data['id'] = $request->input('id_user');
 
-        // verify the data passed by request
-        self::consultantDataValidator($request->all());
-        $consultant_data['password'] = Users::findOrFail($consultant_data['id'])->password;
+        // verify the consultant data
+        $validation_result = self::validator($consultant_data);
+        if($validation_result->fails())
+            return $validation_result;
 
         $new_consultant = self::create($consultant_data); // saves the new consultant instance
 
@@ -95,11 +96,11 @@ class Consultants extends Authenticatable
        * Validates data of a consultant by the array
        *
        * @param array $data
-       * @return Illuminate\Support\Facades\Validator
+       * @return \Illuminate\Contracts\Validation\Validator
        */
-      public static function consultantDataValidator(array $data) {
+      public static function validator(array $data) {
         return Validator::make($data, [
-          'id' => ['required', 'integer', 'unique:Users'],
+          'id' => ['required', 'integer', 'exists:Users'],
           'cpf' => ['required',
                     'regex:' . Users::CPF_REGEX,
                     'string',
@@ -123,7 +124,7 @@ class Consultants extends Authenticatable
                     'regex:' . Users::CPF_REGEX,
                     'string',
                     'max:14',
-                    'unique:Consultants'],
+                    'exists:Consultants'],
             'password' => ['required', 'string', 'max:255'],
         ]);
       }
@@ -146,5 +147,14 @@ class Consultants extends Authenticatable
         $user = Users::findOrFail($this->id);   // get the parent user instance
 
         return $user->email();  // gets the email if it exists
+    }
+
+    /**
+     * Returns $this as a String
+     *
+     * @return string
+     */
+    public function __toString() {
+        return json_encode($this);
     }
 }
