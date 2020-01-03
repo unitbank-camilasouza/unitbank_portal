@@ -77,7 +77,8 @@ class WithdrawController extends Controller
      * @return null|\Illuminate\Routing\Redirector|\Illuminate\Http\RedirectResponse|\App\Withdrawals
      */
     public function makeAWithdraw(Request $request, Contracts $contract) {
-        $withdraw_value = $request->input('withdraw_value');
+        DB::beginTransaction();
+        $withdraw_value = $request->input('value');
 
         $request->merge([
             'id_contract' => $contract->id,
@@ -86,13 +87,16 @@ class WithdrawController extends Controller
         ]);
 
         $result = Withdrawals::createByRequest($request);
-        if($response = handler()->handleThis($result)->ifValidationFailsRedirect($request->url()))
+        if($response = handler()->handleThis($result)->ifValidationFailsRedirect($request->url())) {
+            DB::rollback();
             return $response;
+        }
 
         // ***********************
         // TODO: generate the log
         // ***********************
 
+        DB::commit();
         return $result;
     }
 }

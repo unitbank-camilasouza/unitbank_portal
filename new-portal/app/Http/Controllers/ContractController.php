@@ -31,7 +31,6 @@ class ContractController extends Controller
     */
     public function saveContract(Request $request) {
         $this->middleware('auth:consultant');
-
         // ***********************
         // TODO: generate the log
         // ***********************
@@ -40,11 +39,13 @@ class ContractController extends Controller
         return DB::transaction(function () use ($request) {
             $result = Contracts::createByRequest($request);
 
-            if($response = handler()->handleThis($result)->ifValidationFailsRedirect('/'))
+            if($response = handler()->handleThis($result)->ifValidationFailsRedirect('/')) {
+                DB::rollBack();
                 return $response;
+            }
 
             DB::commit();
-            return redirect()->route('home')->with('success_message', 'Contract successly saved');
+            return back()->with('success_message', 'Contract successly saved');
         });
     }
 
@@ -93,16 +94,11 @@ class ContractController extends Controller
         $contracts = [];
         if ($request->ajax()) {
             return $this->ajaxAllContractsResponse();
-        } else if (auth('consultant')->check() || auth('admin')->check()) {
-            $contracts = DB::table('Contracts')
-                             ->join('CoWalletsJunctions',
-                                    'CoWalletsJunctions.id_wallet', '=', 'Contracts.id_wallet')
-                             ->join('Customers',
-                                    'Customers.id', '=', 'CoWalletsJunctions.id_customer')
-                             ->get();
+        } else if(auth('consultant')->check() || auth('admin')->check()) {
+            $contracts = Contracts::join('CurrentContracts', 'CurrentContracts.id', 'Contracts.id')
+                            ->get();
         } else if (auth('customer')->check()) {
-            $customer = Customers::findOrFail(auth('customer')->id());
-            $contracts = $customer->contracts();
+            $contracts = auth('customer')->user()->currentContracts()->paginate(15);
         } else {
             throw new Exception('Incorrect values to get contract.');
         }

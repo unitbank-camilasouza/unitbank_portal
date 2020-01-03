@@ -92,7 +92,7 @@ class RegisterController extends Controller
             }
         }
         else
-          return redirect()->route('register_customer'); // if is undefined, may be a hacker
+          return back(); // if is undefined, may be a hacker
 
         // verify if any invalid input has ocurred
         if($response = handler()->handleThis($result)->ifValidationFailsRedirect(self::CUSTOMER_REGISTER_URL)){
@@ -107,7 +107,7 @@ class RegisterController extends Controller
         }
         DB::commit();
 
-        return redirect()->route('home');
+        return back();
       });
     }
 
@@ -157,7 +157,7 @@ class RegisterController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('home');
+            return back();
         });
     }
 

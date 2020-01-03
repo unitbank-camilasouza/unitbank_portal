@@ -4,8 +4,6 @@ namespace Tests\Unit;
 
 use App\Consultants;
 use App\Customers;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class ContractsTests extends TestCase
@@ -17,22 +15,29 @@ class ContractsTests extends TestCase
      */
     public function testExample()
     {
-        $consultant = Consultants::findOrFail('cpf', '462.604.768-84');
-        $customer = Customers::findOrFail('cpf', '462.604.768-84');
-        $wallet = $customer->wallets();
+        $consultant = Consultants::getByCpf('462.604.768-84');
+        $customer = Customers::getByCpf('462.604.768-84');
+        $wallets = $customer->wallets()->get();
+        $wallet = null;
+        foreach ($wallets as $w) {
+            $wallet = $w;
+            break;
+        }
+
         $contract_data = [
-            'id_wallet' => $wallet->id,
-            'contract_status' => '',    # a decidir
-            'product' => '',            # a decidir
+            'id_wallet' => $wallet->id_wallet,
+            'contract_status' => 'pending',
+            'product' => 'Income',
             'value' => '5000.00',
             'started_at' => '2019-07-07',
         ];
+
         $response = $this->actingAs($consultant, 'consultant')
                          ->post(
                              route('save_new_contract'),
-                            $contract_data
-                        );
+                             $contract_data
+                         );
 
-        dd($response);
+        $response->assertOk();
     }
 }

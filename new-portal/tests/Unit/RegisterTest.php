@@ -8,6 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
+use Illuminate\Support\Facades\Hash;
 
 class RegisterTest extends TestCase
 {
@@ -20,8 +21,9 @@ class RegisterTest extends TestCase
     public function testBasicTest() {
         $this->withoutMiddleware();
 
-        $response = $this->registerConsultant();
-        $response->assertOk();
+        #$response = $this->registerConsultant();
+        #$response->assertOk();
+        dd(Hash::make('admin123'));
         $response = $this->registerCustomer();
         $response->assertOk();
     }
@@ -66,7 +68,7 @@ class RegisterTest extends TestCase
     public function registerCustomer() {
         $consultant = Consultants::where('cpf', '462.604.768-84')->firstOrFail();
         $register_data = [
-            'cpf' => '462.604.768-84',
+            'cpf' => '518.072.700-68',
             'first_name' => 'Davi',
             'last_name' => 'Mendes',
             'password' => '$2y$10$gMqDUl3iNKyM0vPDABR3L.xMo6D1mXVwDGcODZAhZ4hMV1uBb5oZu',
@@ -77,7 +79,7 @@ class RegisterTest extends TestCase
             'city' => 'São Paulo',
             'state' => 'SP',
             'country' => 'Brasil',
-            'email' => 'davi.mendes@gmail.com',
+            'email' => 'davi.mendes2010@gmail.com',
             'phone_number' => '(11) 99927-6841',
             'person_type' => 'physical_person',
             'nationality' => 'Brazilian',

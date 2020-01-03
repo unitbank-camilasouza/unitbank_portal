@@ -12,7 +12,7 @@
     <tbody>
     @forelse ($contracts as $contract)
         <tr>
-            <td> {{ $contract->current_value }} </td>
+            <td> {{ $contract->value }} </td>
             <td> {{ $contract->product }} </td>
             <td> {{ $contract->status }} </td>
         </tr>

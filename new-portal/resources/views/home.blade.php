@@ -17,18 +17,18 @@
                     You are logged in!
                     <table>
                         <thead>
-                            <th>
-                                <td> {{ __('value') }} </td>
-                                <td> {{ __('product') }} </td>
-                                <td> {{ __('status') }} </td>
-                            </th>
+                            <tr>
+                                <th> {{ __('value') }} </td>
+                                <th> {{ __('product') }} </td>
+                                <th> {{ __('status') }} </td>
+                            </tr>
                         </thead>
                         <tbody>
                         @forelse ($contracts as $contract)
-                            <tr>
+                            <tr onclick="window.location.href='{{ route('show_contract_details', ['contract' => encrypt($contract->id)]) }}'">
                                 <td> {{ $contract->current_value }} </td>
                                 <td> {{ $contract->product }} </td>
-                                <td> {{ $contract->status }} </td>
+                                <td> {{ $contract->contract_status }} </td>
                             </tr>
                         @empty
                             <tr>
@@ -37,6 +37,8 @@
                                 <td></td>
                             </tr>
                         @endforelse
+
+                        {{ $contracts->links() }}
                         </tbody>
                     </table>
                 </div>

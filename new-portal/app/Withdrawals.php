@@ -19,29 +19,43 @@ class Withdrawals extends Model
     public $table = 'Withdrawals';
 
     /**
+     * Fillables properties
+     *
+     * @var array $fillable
+     */
+    public $fillable = [
+        'id_contract', 'id_wallet', 'value',
+        'previous_value'
+    ];
+
+    /** */
+    public $timestamps = false;
+
+    /**
      * Create and Saves a new Withdraw instance with request param
      *
      * @param  Illuminate\Http\Request $request
      * @return App\Withdraw|\App\Illuminate\Support\Facades\Validator
     */
-    public function createByRequest(Request $request) {
-        $withdraw_values = $request->only([
+    public static function createByRequest(Request $request) {
+        $withdraw_data = $request->only([
             'id_contract', 'id_wallet', 'value'
         ]);
 
         // verifies if the validation fails
-        $validation_result = self::validator($withdraw_values);
+        $validation_result = self::validator($withdraw_data);
         if($validation_result->fails())
             return $validation_result;
 
         // get the current contract of the withdraw and sub the value of it
-        $contract = CurrentContracts::findOrFail($withdraw_values['id_contract']);
-        $withdraw_values['previous_value'] = $contract->value;
+        $curr_contract = CurrentContracts::findOrFail($withdraw_data['id_contract']);
+        $withdraw_data['previous_value'] = $curr_contract->current_value;
 
-        $contract->value -= $withdraw_values['value'];
-        $contract->save();
+        $curr_contract->current_value -= $withdraw_data['value'];
 
-        return Withdrawals::create($withdraw_values);
+        $curr_contract->save();
+
+        return Withdrawals::create($withdraw_data);
     }
 
     /**
@@ -50,7 +64,7 @@ class Withdrawals extends Model
      * @param array $data
      * @return \Illuminate\Contracts\Validation\Validator
      */
-    public function validator($data) {
+    public static function validator($data) {
         return Validator::make($data, [
             'id_contract' => ['bail', 'integer', 'exists:CurrentContracts,id'],
             'id_wallet' => ['bail', 'integer', 'exists:Wallets,id'],

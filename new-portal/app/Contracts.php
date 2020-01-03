@@ -7,16 +7,27 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\CurrentContracts;
 
 class Contracts extends Model
 {
     use SoftDeletes;
     /**
-     * Contracts table name
+     * Contract's table name
      *
      * @var string $table
     */
     public $table = 'Contracts';
+
+    /**
+     * Contract's fillable properties
+     *
+     * @var array $fillable
+     */
+    public $fillable = [
+        'id_wallet', 'contract_status', 'product',
+        'value', 'started_at'
+    ];
 
     /**
      * The name of 'deleted_at' column
@@ -52,7 +63,7 @@ class Contracts extends Model
 
         $validation_result = self::validator($contract_data);
         if($validation_result->fails())
-            return $validation_result;
+            return $validation_result->errors();
 
         $new_contract = self::create($contract_data);
 
@@ -63,7 +74,7 @@ class Contracts extends Model
         $validation_result = CurrentContracts::createByRequest($request);
 
         if(handler()->handleThis($validation_result)->ifValidationFailsReturnsThis()) {
-            return $validation_result;
+            return $validation_result->errors();
         }
 
         return $new_contract;
@@ -78,7 +89,7 @@ class Contracts extends Model
     public static function validator($data) {
         return Validator::make($data, [
             'id_wallet' => ['bail', 'required', 'integer', 'exists:Wallets,id'],
-            'contract_status' => ['bail', 'required', 'string', 'exists:ContractStatus,contract_status'],
+            'contract_status' => ['bail', 'required', 'string', 'exists:ContractStatus,status'],
             'product' => ['bail', 'required', 'string', 'exists:Products,product'],
             'value' => ['bail', 'required', 'numeric'],
             'started_at' => ['bail', 'date', 'after_or_equal:2019-01-01'],
@@ -91,16 +102,20 @@ class Contracts extends Model
      * @return \Illuminate\Database\Query\Builder
      */
     public function customers() {
-        return $this->belongsToMany('\App\Customers');
+        $wallet = $this->wallet();
+        return $wallet->belongsToMany('\App\Customers',
+                                      'CoWalletsJunctions',
+                                      'id_wallet',
+                                      'id_customer');
     }
 
     /**
-     * Gets this Contract's CoWallets instances
+     * Gets the Contract's wallet
      *
-     * @return \Illuminate\Database\Query\Builder
+     * @return \App\Wallets
      */
-    public function coWallets() {
-        return CoWalletsJunctions::where('id_wallet', $this->id_wallet);
+    public function wallet() {
+        return Wallets::find($this->id_wallet);
     }
 
     /**

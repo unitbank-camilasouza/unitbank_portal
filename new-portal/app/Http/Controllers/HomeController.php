@@ -32,8 +32,7 @@ class HomeController extends Controller
             $contracts = Contracts::join('CurrentContracts', 'CurrentContracts.id', 'Contracts.id')
                             ->get();
         } else if (auth('customer')->check()) {
-            $current_user_id = auth('customer')->id();
-            $contracts = Customers::findOrFail($current_user_id)->currentContracts()->get();
+            $contracts = auth('customer')->user()->currentContracts()->paginate(15);
         }
 
         return view('home', ['contracts' => $contracts]);

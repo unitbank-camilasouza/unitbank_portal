@@ -5,16 +5,28 @@ namespace App\Http\Controllers;
 use App\Contracts;
 use App\Yields;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class YieldController extends Controller
 {
     /**
      * Makes a yield and saves it on database
      *
-     * @return App\Yields
+     * @return \App\Yields
      */
-    public function makeAYield(Contracts $contract) {
-        // TODO: make a yield and save it on database
+    public function makeAYield(Request $request, Contracts $contract) {
+        DB::beginTransaction();
+        $new_yield = Yields::createByRequest($request);
+
+        // verifies if an invalidating error has occurred
+        if($response = handler($new_yield)->ifValidationFailsRedirect('/')) {
+            DB::rollBack();
+            return $response->withErrors($new_yield);
+        }
+        DB::commit();
+
+        // else, all has been saved correctely
+        return back()->with('success_message', 'Yield saved successfully');
     }
 
     /**
@@ -34,6 +46,25 @@ class YieldController extends Controller
      * @return \Illuminate\View\View|\Illuminate\Contracts\View\Factory
      */
     public function showsYieldDetails(Yields $yield) {
-        // TODO: shows yield details
+        return view('yield.show_details', ['yield' => $yield]);
+    }
+
+    /**
+     * Disable a Yields from database
+     *
+     * @param Illuminate\Http\Request $request
+     * @param App\Yields $yield
+     * @return \Illuminate\Http\RedirectResponse
+    */
+    public function disableYield(Request $request, Yields $yield) {
+        $this->middleware('auth:consultant');
+
+        // ***********************
+        // TODO: generate the log
+        // ***********************
+
+        $yield->delete();
+
+        return back()->with('success_message', 'Yield disabled successfuly');
     }
 }

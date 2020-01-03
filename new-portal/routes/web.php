@@ -146,32 +146,22 @@ Route::prefix('home')->middleware(['auth'])->group(function () {
     /** Contracts management routes */
     Route::prefix('contracts')->group(function () {
         // shows all contracts
-        Route::any('/', 'ContractController@showsContracts');
+        Route::any('/', 'ContractController@showsContracts')
+             ->name('show_all_contracts');
 
-        Route::prefix('{contract}')->middleware(['can:request-contract-details,contract'])
-             ->group(function () {
-            // route to view a specif contract
-            Route::any('/', 'ContractController@showsContractDetails');
-
-            // route to show the withdraw form
-            Route::get('make-a-withdraw', 'WithdrawController@showWithdrawForm');
-
-            // route to save a withdraw
-            Route::post('make-a-withdraw', 'WithdrawController@makeAWithdraw');
-
-            // route to approves a yield
-            Route::post('yield-approvation', 'YieldController@makeAYield');
-        });
+        Route::any('id/{contract}', 'ContractController@showsContractDetails')
+             ->middleware(['can:request-contract-details,contract'])
+             ->name('show_contract_details');
 
         // route to show the save contract form
         Route::get('save-new-contract', 'ContractController@showSaveContractForm')
-               ->middleware(['auth:consultant'])
-               ->name('save_new_contract_form');
+             ->middleware(['auth:consultant'])
+             ->name('save_new_contract_form');
 
         // route to save a new contract
         Route::post('save-new-contract', 'ContractController@saveContract')
-               ->middleware(['auth:consultant'])
-               ->name('save_new_contract');
+             ->middleware(['auth:consultant'])
+             ->name('save_new_contract');
     });
 
 
@@ -185,14 +175,17 @@ Route::prefix('home')->middleware(['auth'])->group(function () {
         Route::any('/', 'WithdrawController@showsWithdraws');
 
         // route to view a specif withdraw
-        Route::any('{withdraw}', 'WithdrawController@showsWithdrawDetails')
-               ->middleware(['can:request-withdraw-details,withdraw']);
+        Route::any('id/{withdraw}', 'WithdrawController@showsWithdrawDetails')
+               ->middleware(['can:request-contract-details,withdraw'])
+               ->name('show_withdraw_details');
 
         // route to show the withdraw form
-        Route::get('make-a-withdraw', 'WithdrawController@showWithdrawForm');
+        Route::get('make-a-withdraw/{contract?}', 'WithdrawController@showWithdrawForm')
+             ->name('make_withdraw_form');
 
         // route to save a withdraw
-        Route::post('make-a-withdraw', 'WithdrawController@makeAWithdraw');
+        Route::post('make-a-withdraw/{contract}', 'WithdrawController@makeAWithdraw')
+             ->name('make_withdraw');
     });
 
 
@@ -203,13 +196,22 @@ Route::prefix('home')->middleware(['auth'])->group(function () {
     /** Yields management routes */
     Route::prefix('yields')->group(function () {
         // shows all yields
-        Route::any('/', 'YieldController@showsYields');
+        Route::any('/', 'YieldController@showsYields')
+             ->name('show_all_yields');
 
         // route to view a specif yield
-        Route::any('{yield}', 'YieldController@showsYieldDetails')
-               ->middleware(['can:request-yield-details,yield']);
+        Route::any('id/{yield}', 'YieldController@showsYieldDetails')
+             ->middleware(['can:request-contract-details,yield'])
+             ->name('show_yield_details');
 
         // route to approves a yield
-        Route::post('yield-approvation', 'YieldController@makeAYield');
+        Route::post('yield-approvation', 'YieldController@makeAYield')
+             ->middleware(['auth:consultant'])
+             ->name('approves_yield');
+
+        // route to disable a yield
+        Route::post('disable-yield/{yield}', 'YieldController@disableYield')
+             ->middleware(['auth:consultant'])
+             ->name('disable_yield');
     });
 });

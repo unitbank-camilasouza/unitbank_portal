@@ -5,15 +5,26 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CurrentContracts extends Model
 {
+    use SoftDeletes;
     /**
      * table name
      *
      * @var string $table
     */
-    protected $table = 'CurrentContracts';
+    public $table = 'CurrentContracts';
+
+    /**
+     * Contract's fillable properties
+     *
+     * @var array $fillable
+     */
+    public $fillable = [
+        'id', 'current_value'
+    ];
 
     /**
      * The name of 'deleted_at' column
@@ -52,7 +63,7 @@ class CurrentContracts extends Model
         if($validation_result->fails())
             return $validation_result;
 
-        return self::create();
+        return self::create($current_contract_data);
     }
 
     /**
@@ -63,7 +74,7 @@ class CurrentContracts extends Model
      */
     public static function validator(array $values) {
         return Validator::make($values, [
-            'id' => ['required', 'integer', 'unique:Contracts,id'],
+            'id' => ['required', 'integer', 'exists:Contracts,id'],
             'current_value' => ['required', 'numeric', 'gt:0'],
         ]);
     }

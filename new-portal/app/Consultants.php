@@ -132,7 +132,7 @@ class Consultants extends Authenticatable
     /**
      * Gets the user by the given CPF
      *
-     * @return null|App\Consultants
+     * @return \App\Consultants
     */
     public static function getByCpf(string $cpf) {
         return self::where('cpf', $cpf)->first();

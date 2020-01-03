@@ -177,7 +177,7 @@ class Customers extends Authenticatable
     /**
      * Gets the user by the given CPF
      *
-     * @return null|App\Customers
+     * @return \App\Customers
     */
     public static function getByCpf(string $cpf) {
         return self::where('cpf', $cpf)->first();
@@ -200,7 +200,7 @@ class Customers extends Authenticatable
      * @return \App\CoWalletsJunctions
      */
     public function coWalletsJunctions() {
-        return $this->belongsToMany('\App\CoWalletsJunctions');
+        return $this->belongsToMany('\App\CoWalletsJunctions', null, 'id_customer', 'id_wallet');
     }
 
     /**
@@ -209,11 +209,17 @@ class Customers extends Authenticatable
      * @return \App\Wallets
      */
     public function wallets() {
-        $co_wallets = $this->coWalletsJunctions()->get();
+        return Wallets::join('CoWalletsJunctions', 'CoWalletsJunctions.id_wallet', '=', 'Wallets.id')
+                      ->where('CoWalletsJunctions.id_customer', $this->id);
+    }
 
-        foreach ($co_wallets as $co_wallet) {
-            return Wallets::where('id', $co_wallet->id_wallet)->firstOrFail();
-        }
+    /**
+     * Get the customer's specific Wallet
+     *
+     * @return \App\Wallets
+     */
+    public function wallet($id) {
+        return $this->coWalletsJunctions()->where('Wallets.id', $id);
     }
 
     /**
@@ -223,11 +229,11 @@ class Customers extends Authenticatable
      */
     public function contracts() {
         $contracts = DB::table('CoWalletsJunctions')
-                         ->join('Contracts', function ($join) {
+                       ->join('Contracts', function ($join) {
                              $join->on('CoWalletsJunctions.id_wallet', '=', 'Contracts.id_wallet')
                                   ->on('CoWalletsJunctions.id_customer', '=', $this->id);
                          })
-                         ->join('Customers',
+                       ->join('Customers',
                                 'CoWalletsJunctions.id_customer', '=', $this->id);
 
         return $contracts;
@@ -251,7 +257,8 @@ class Customers extends Authenticatable
                                                     'Customers.id',
                                                     '=',
                                                     'CoWalletsJunctions.id_customer')
-                                             ->where('Customers.id', $this->id);
+                                             ->where('Customers.id', $this->id)
+                                             ->select('CurrentContracts.*');
 
         return $current_contracts;
     }

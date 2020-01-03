@@ -19,5 +19,7 @@ class Wallets extends Model
 
     public $timestamps = false;
 
-    public $dates = ['updated_at', 'disabled_at'];
+    public $dates = ['updated_at', 'deleted_at'];
+
+    const DELETED_AT = 'disabled_at';
 }

@@ -60,29 +60,26 @@ class AppServiceProvider extends ServiceProvider
             });
         }
 
-        Gate::define('request-contract-details', function ($contract) {
-            dd($contract);
+        Gate::define('request-contract-details', function ($user, $details_item) {
+            if($user instanceof \App\Customers) {
 
-            if(auth('customer')->check()) {
-                $co_wallet = CoWalletsJunctions::where('id_wallet', $contract->id_wallet)
-                                             ->firstOrFail();
+                if ($details_item instanceof \App\Contracts) {
+                     $co_wallet = CoWalletsJunctions::where('id_wallet', $details_item->id_wallet)
+                                                    ->firstOrFail();
+                }
+                else if ($details_item instanceof \App\Withdrawals ||
+                         $details_item instanceof \App\Yields)
+                {
+                            $contract = Contracts::findOrFail($details_item->id_contract);
+                            $co_wallet = CoWalletsJunctions::
+                                         where('id_wallet', $contract->id_wallet)
+                                       ->firstOrFail();
+                }
 
-                return auth('customer')->id() === $co_wallet->id_customer;
+                return $user->id == $co_wallet->id_customer;
             }
 
             return true;
-        });
-
-        Gate::define('request-withdraw-details', function ($withdraw) {
-            // TODO: defines the withdraw policy
-        });
-
-        Gate::define('request-yield-details', function ($yield) {
-            // TODO: defines the yield policy
-        });
-
-        Gate::define('request-user-details', function ($user) {
-            // TODO: defines the user policy
         });
     }
 }
