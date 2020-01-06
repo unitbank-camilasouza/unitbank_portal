@@ -17,18 +17,14 @@ class ContractsTests extends TestCase
     {
         $consultant = Consultants::getByCpf('462.604.768-84');
         $customer = Customers::getByCpf('462.604.768-84');
-        $wallets = $customer->wallets()->get();
-        $wallet = null;
-        foreach ($wallets as $w) {
-            $wallet = $w;
-            break;
-        }
+        $wallets = $customer->wallets();
+        $wallet = $wallets->firstOrFail();
 
         $contract_data = [
             'id_wallet' => $wallet->id_wallet,
             'contract_status' => 'pending',
             'product' => 'Income',
-            'value' => '5000.00',
+            'value' => '8000.00',
             'started_at' => '2019-07-07',
         ];
 
@@ -37,7 +33,7 @@ class ContractsTests extends TestCase
                              route('save_new_contract'),
                              $contract_data
                          );
-
+        $response = $this->followRedirects($response);
         $response->assertOk();
     }
 }

@@ -30,7 +30,7 @@ class HomeController extends Controller
 
         if(auth('consultant')->check() || auth('admin')->check()) {
             $contracts = Contracts::join('CurrentContracts', 'CurrentContracts.id', 'Contracts.id')
-                            ->get();
+                                  ->paginate(15);
         } else if (auth('customer')->check()) {
             $contracts = auth('customer')->user()->currentContracts()->paginate(15);
         }

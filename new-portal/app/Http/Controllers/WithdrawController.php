@@ -25,17 +25,28 @@ class WithdrawController extends Controller
      * @return \Illuminate\View\View|\Illuminate\Contracts\View\Factory
      */
     public function showsWithdraws() {
-        return view('withdraw.show_all');
+        $withdrawals = null;
+        if(auth('customer')->check()) {
+            $user = auth('customer')->user();
+            $withdrawals = $user->withdrawals()
+                                ->orderBy('withdrawn_at', 'desc')
+                                ->paginate(20);
+        } else {
+            $withdrawals = Withdrawals::orderBy('withdrawn_at', 'desc')->paginate(20);
+        }
+
+        return view('withdraw.show_all', [
+            'withdrawals' => $withdrawals
+        ]);
     }
 
     /**
      * Disable a Withdrawals from database
      *
-     * @param Illuminate\Http\Request $request
      * @param App\Withdrawals $withdraw
      * @return \Illuminate\Http\RedirectResponse
     */
-    public function disableWithdrawals(Request $request, Withdrawals $withdraw) {
+    public function disableWithdrawals(Withdrawals $withdraw) {
         $this->middleware('auth:consultant');
 
         // ***********************
@@ -50,12 +61,13 @@ class WithdrawController extends Controller
     /**
      * Shows the details of the Withdraw instance
      *
-     * @param App\Withdrawals $withdraw
+     * @param \App\Withdrawals $withdraw
      * @return \Illuminate\View\View|\Illuminate\Contracts\View\Factory
     */
     public function showsWithdrawDetails(Withdrawals $withdraw) {
         $data['withdraw'] = $withdraw;
         $data['contract'] = $withdraw->contract();
+        $data['current_contract'] = $withdraw->currentContract();
         $data['customers'] = $withdraw->contract()->customers();
         return view('withdraw.show_details', $data);
     }
@@ -97,6 +109,6 @@ class WithdrawController extends Controller
         // ***********************
 
         DB::commit();
-        return $result;
+        return back()->with('success_message', 'The withdraw has been successfuly saved');
     }
 }

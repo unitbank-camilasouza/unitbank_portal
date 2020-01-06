@@ -32,11 +32,21 @@ class YieldController extends Controller
     /**
      * Shows all Yields
      *
+     * @param \Illuminate\Http\Request
      * @return \Illuminate\View\View|\Illuminate\Contracts\View\Factory
      */
-    public function showsYields() {
+    public function showsYields(Request $request) {
+        $yields = null;
+        if(auth('customer')->check()) {
+            $yields = auth('customer')->user()->yields()->paginate(20);
+        } else {
+            $yields = Yields::paginate(20);
+        }
+
         // TODO: shows all the yields
-        return view('yield.show_all');
+        return view('yield.show_all', [
+            'yields' => $yields
+        ]);
     }
 
     /**

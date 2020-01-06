@@ -80,4 +80,13 @@ class Withdrawals extends Model
     public function contract() {
         return Contracts::findOrFail($this->id_contract);
     }
+
+    /**
+     * Gets the Withdraw's Current Contract instance
+     *
+     * @return \App\CurrentContracts
+     */
+    public function currentContract() {
+        return CurrentContracts::findOrFail($this->id_contract);
+    }
 }

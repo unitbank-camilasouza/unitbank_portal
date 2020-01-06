@@ -107,7 +107,7 @@ class RegisterController extends Controller
         }
         DB::commit();
 
-        return back();
+        return back()->with('success_message', 'The register has been successfuly saved');
       });
     }
 
@@ -157,7 +157,7 @@ class RegisterController extends Controller
             }
 
             DB::commit();
-            return back();
+            return back()->with('success_message', 'The register has been successfuly saved');
         });
     }
 

@@ -231,10 +231,10 @@ class Customers extends Authenticatable
         $contracts = DB::table('CoWalletsJunctions')
                        ->join('Contracts', function ($join) {
                              $join->on('CoWalletsJunctions.id_wallet', '=', 'Contracts.id_wallet')
-                                  ->on('CoWalletsJunctions.id_customer', '=', $this->id);
-                         })
-                       ->join('Customers',
-                                'CoWalletsJunctions.id_customer', '=', $this->id);
+                                  ->where('CoWalletsJunctions.id_customer', '=', $this->id);
+                         })->select('Contracts.*');
+                    //    ->join('Customers',
+                    //             'CoWalletsJunctions.id_customer', '=', $this->id);
 
         return $contracts;
     }
@@ -261,5 +261,31 @@ class Customers extends Authenticatable
                                              ->select('CurrentContracts.*');
 
         return $current_contracts;
+    }
+
+    /**
+     * Gets all Customer's yields
+     *
+     * @return void
+     */
+    public function yields() {
+        $contracts = $this->contracts();
+        $yields = $contracts->join('Yields', 'Yields.id_contract', '=', 'Contracts.id')
+                            ->select('Yields.*');
+
+        return $yields;
+    }
+
+    /**
+     * Gets all Customer's withdrawals
+     *
+     * @return void
+     */
+    public function withdrawals() {
+        $contracts = $this->contracts();
+        $withdrawals = $contracts->join('Withdrawals', 'Withdrawals.id_contract', '=', 'Contracts.id')
+                                 ->select('Withdrawals.*');
+
+        return $withdrawals;
     }
 }

@@ -4,11 +4,8 @@ namespace Tests\Unit;
 
 use App\Admins;
 use App\Consultants;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
-use Illuminate\Support\Facades\Hash;
 
 class RegisterTest extends TestCase
 {
@@ -21,10 +18,11 @@ class RegisterTest extends TestCase
     public function testBasicTest() {
         $this->withoutMiddleware();
 
-        #$response = $this->registerConsultant();
-        #$response->assertOk();
-        dd(Hash::make('admin123'));
+        $response = $this->registerConsultant();
+        $response = $this->followRedirects($response);
+        $response->assertOk();
         $response = $this->registerCustomer();
+        $response = $this->followRedirects($response);
         $response->assertOk();
     }
 

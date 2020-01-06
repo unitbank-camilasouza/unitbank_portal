@@ -18,10 +18,19 @@ class WithdrawalsTest extends TestCase
      */
     public function testExample()
     {
+        $this->makeWithdrawTest();
+    }
+
+    /**
+     * Makes a new Withdraw as a test
+     *
+     * @return void
+     */
+    public function makeWithdrawTest() {
         $consultant = Consultants::getByCpf('462.604.768-84');
         $contract = Contracts::findOrFail(6);
         $withdraw_data = [
-            'value' => 3000,
+            'value' => 500,
         ];
 
         $response = $this->actingAs($consultant, 'consultant')
@@ -30,6 +39,7 @@ class WithdrawalsTest extends TestCase
                             $withdraw_data
                          );
 
-        dd($response);
+        $other_response = $this->followRedirects($response);
+        $other_response->assertOk();
     }
 }
