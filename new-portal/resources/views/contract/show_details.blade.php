@@ -6,8 +6,8 @@
 
     Yields:
     @forelse ($yields as $y)
-    <br>
-        <p onclick="window.location.href='{{ route('show_yield_details', ['yield' => encrypt($y->id)]) }}'"> Yield: {{ $y->id }} </p>
+        @component('components.yield_component', [ 'id' => $y->id])
+        @endcomponent
     @empty
         No Yield found
     @endforelse

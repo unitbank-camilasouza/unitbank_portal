@@ -81,5 +81,16 @@ class AppServiceProvider extends ServiceProvider
 
             return true;
         });
+
+        Gate::define('request-user-details', function ($user, $user_item) {
+            // verifies if the user is a customer
+            // if yes, returns the id's validation
+            if ($user instanceof \App\Customers) {
+                return $user->id == $user_item->id;
+            }
+
+            // if not, return true (anybody that isn't a customer can see this user)
+            return true;
+        });
     }
 }

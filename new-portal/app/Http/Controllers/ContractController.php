@@ -30,7 +30,6 @@ class ContractController extends Controller
      * @return \Illuminate\Http\RedirectResponse
     */
     public function saveContract(Request $request) {
-        $this->middleware('auth:consultant');
         // ***********************
         // TODO: generate the log
         // ***********************

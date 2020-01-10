@@ -46,7 +46,7 @@ class WithdrawController extends Controller
      * @param App\Withdrawals $withdraw
      * @return \Illuminate\Http\RedirectResponse
     */
-    public function disableWithdrawals(Withdrawals $withdraw) {
+    public function disableWithdrawn(Withdrawals $withdraw) {
         $this->middleware('auth:consultant');
 
         // ***********************

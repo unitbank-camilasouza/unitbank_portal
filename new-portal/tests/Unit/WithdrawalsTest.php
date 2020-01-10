@@ -4,9 +4,7 @@ namespace Tests\Unit;
 
 use App\Consultants;
 use App\Contracts;
-use App\CurrentContracts;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
+use App\Customers;
 use Tests\TestCase;
 
 class WithdrawalsTest extends TestCase
@@ -19,6 +17,8 @@ class WithdrawalsTest extends TestCase
     public function testExample()
     {
         $this->makeWithdrawTest();
+        $this->sendWithdrawSolicitation();
+        $this->sendCancellationSolicitation();
     }
 
     /**
@@ -28,7 +28,7 @@ class WithdrawalsTest extends TestCase
      */
     public function makeWithdrawTest() {
         $consultant = Consultants::getByCpf('462.604.768-84');
-        $contract = Contracts::findOrFail(6);
+        $contract = Contracts::firstOrFail();
         $withdraw_data = [
             'value' => 500,
         ];
@@ -41,5 +41,50 @@ class WithdrawalsTest extends TestCase
 
         $other_response = $this->followRedirects($response);
         $other_response->assertOk();
+    }
+
+    /**
+     * Request a withdraw solicitation as a test
+     *
+     * @return void
+     */
+    public function sendWithdrawSolicitation() {
+        $customer = Customers::getByCpf('462.604.768-84');
+        $contract = Contracts::firstOrFail();
+        $solicitation_data = [
+            'value' => '1500.0',
+            'id_contract' => $contract->id,
+            'id_customer' => $customer->id,
+        ];
+
+        $response = $this->actingAs($customer)
+                         ->post(
+                             route('send_withdraw_solicitation', [ 'contract' => encrypt($contract->id) ]),
+                             $solicitation_data
+                         );
+        $response = $this->followRedirects($response);
+        $response->assertOk();
+    }
+
+    /**
+     * Request a cancellation solicitation as a test
+     *
+     * @return void
+     */
+    public function sendCancellationSolicitation() {
+        $customer = Customers::getByCpf('462.604.768-84');
+        $contract = Contracts::firstOrFail();
+        $solicitation_data = [
+            'id_contract' => $contract->id,
+            'id_customer' => $customer->id,
+        ];
+
+        $response = $this->actingAs($customer)
+                         ->post(
+                             route('send_cancellation_solicitation', [ 'contract' => encrypt($contract->id) ]),
+                             $solicitation_data
+                         );
+        $response = $this->followRedirects($response);
+        $response->assertOk();
     }
 }
